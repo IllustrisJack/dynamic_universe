@@ -1,4 +1,5 @@
 # Deadair Scripts
+## 20250923 I have decided to completely retire from X4 Modding. I have added licenses to Eco, Scripts, and DeadTater if any persons are interested in using, modifying, or continuing my works. Thank you for all the support and interest in my work over these years.
 ## Dynamic Universe
 Collection of my custom scripts that aims to reduce the static nature of X4 Foundations and expand the sandbox experience. Readme is often out of date on features or numbers so feel free to contact me on the Egosoft Discord or check patch notes on pushes.
 ## Menu Option Information
@@ -98,3 +99,4 @@ Collection of my custom scripts that aims to reduce the static nature of X4 Foun
 - Best place to contact me is via @ on Egosoft Discord modding channel.
 ## Random Notes
 - Can't believe I have to add this. No, you are not allowed to just copy my stuff and put it into your own mod or modpack WITHOUT permission.
+
