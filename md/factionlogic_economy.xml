@@ -5,7 +5,7 @@
       <signal_cue_instantly cue="md.DeadAirDynamicUniverse.EventDynamicNewsStationExpanded" param="[$Station,@$NewModules,@$WantedProductions]"/>
     </do_if>
   </add>
-  <add sel="/mdscript/cues/library[@name='Econ_Manager']/cues/cue[@name='Request_Factory']/actions/do_else[1]/do_else/do_if[@value='$Zone or @$BuildInSector']/do_if[@value='not $ProductionPlanned']/do_if[@value='@$BuildInSector']/remove_value[@name='$SectorCentre']" pos="before">
+  <add sel="/mdscript/cues/library[@name='Econ_Manager']/cues/cue[@name='Request_Factory']/actions/do_else[1]/do_else/do_if[@value='$Zone or @$BuildInSector']/do_if[@value='not $ProductionPlanned']/do_else/do_if[@value='@$BuildInSector']/remove_value[@name='$SectorCentre']" pos="before">
     <do_if value="@md.$DADynamicVarTable.$DADynamicNewsEnable and ((not @md.$DADynamicVarTable.$DADynamicNewsKnownFactionsOnly) or ($Faction.knowntoplayer))">
       <signal_cue_instantly cue="md.DeadAirDynamicUniverse.EventDynamicNewsNewStationStarted" param="[$Station,$Ware]"/>
     </do_if>
