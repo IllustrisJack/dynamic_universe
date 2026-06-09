@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8'?>
+<diff>
+  <!-- Tides of Avarice / Split Vendetta DLC Xenon-core sector tags. -->
+  <replace sel="/defaults/dataset[@macro='Cluster_415_Sector001_macro']/properties/area/@tags">allowrandomanomaly daxenoncore</replace>
+  <replace sel="/defaults/dataset[@macro='Cluster_424_Sector002_macro']/properties/area/@tags">allowrandomanomaly daxenoncore</replace>
+</diff>

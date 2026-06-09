@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<diff>
+  <add sel="/diplomacy/actions">
+    <action id="propose_vassalage" category="negotiation" name="{33232474,2790}" description="{33232474,2791}" shortdescription="{33232474,2792}" unique="true" hidden="false">
+      <agent experience="100" type="negotiation" risk="medium"/>
+      <cost influence="50" money="50000000"/>
+      <reward text="{33232474,2793}"/>
+      <time duration="3600" cooldown="7200"/>
+      <icon active="diplomacy_negotiation" image="diplomacy_banner_armistice"/>
+      <failure text="{33232474,2794}"/>
+      <success chance="30" text="{33232474,2795}"/>
+      <params>
+        <param name="station" text="{33232474,2796}" type="object" isfactionexclusive="true" isagenttarget="true">
+          <input_param name="isfactionhq" value="true" comment="Filter for the headquarters"/>
+          <input_param name="inrelationrange" value="'friend'" comment="Player must be friendly to propose"/>
+          <input_param name="excludeanyfactiontags" value="tag.nodiplomacyselection"/>
+        </param>
+      </params>
+    </action>
+  </add>
+</diff>

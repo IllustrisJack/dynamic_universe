@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<diff>
+  <!-- Suzerain Presence: Zyarth Patriarchy uses faction= (owner-based). Swap to
+       policefaction= so Split extends into vassal sectors when suzerain. -->
+  <replace sel="/jobs/job[@id='zyarth_police_patrol_s']/location">
+    <location class="galaxy" macro="xu_ep2_universe_macro" policefaction="split" relation="ally" comparison="ge"/>
+  </replace>
+</diff>

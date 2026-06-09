@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<diff>
+  <!-- Suzerain Presence: Terran police patrol uses faction= (owner-based) by default.
+       Swap to policefaction= so Terran extends police into vassal sectors when they
+       become suzerain. -->
+  <replace sel="/jobs/job[@id='terran_police_patrol_s']/location">
+    <location class="galaxy" macro="xu_ep2_universe_macro" policefaction="terran" relation="ally" comparison="ge"/>
+  </replace>
+</diff>

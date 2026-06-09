@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<diff>
+  <!-- Suzerain Presence: Boron already filters by policefaction but only self. Swap to
+       extension pattern so Boron polices vassal sectors when suzerain. -->
+  <replace sel="/jobs/job[@id='boron_police_patrol_s']/location/@relation">ally</replace>
+  <replace sel="/jobs/job[@id='boron_police_patrol_s']/location/@comparison">ge</replace>
+</diff>
