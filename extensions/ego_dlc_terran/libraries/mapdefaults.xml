@@ -1,0 +1,5 @@
+<?xml version='1.0' encoding='utf-8'?>
+<diff>
+  <!-- Cradle of Humanity DLC Xenon-core sector tag. -->
+  <replace sel="/defaults/dataset[@macro='Cluster_112_Sector001_macro']/properties/area/@tags">allowrandomanomaly daxenoncore</replace>
+</diff>
