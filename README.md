@@ -1,119 +1,235 @@
 # Dynamic Universe
 
-> **Fork notice (2026-06-08):** This is a continued fork of DeadAir's "Dynamic Universe" / "Deadair Scripts" by IllustrisJack. The original was released under GPL-3 with the author's blessing to continue the work (see his retirement note below). Significant modifications since the original include X4 9.0 compatibility, a new Vassal System (F2), an XPath validator toolchain, and various edge-case hardening. See `git log` for the full change history and `docs/` for design specs.
->
-> The internal mod ID (`dynamic_universe`) and folder name (`deadair_scripts`) are intentionally **unchanged** so that existing save games and other mods referencing the original ID (notably DeadAir Eco) continue to work without modification.
+> A mod for **X4: Foundations 9.0** that adds a vassal-state system on top of vanilla diplomacy plus the original DeadAir Dynamic War / Dynamic News mechanics. Continued fork of DeadAir's *Dynamic Universe / Deadair Scripts* by IllustrisJack — see [Attribution & License](#attribution--license) below.
 
-## Original author's retirement note (2025-09-23)
-> I have decided to completely retire from X4 Modding. I have added licenses to Eco, Scripts, and DeadTater if any persons are interested in using, modifying, or continuing my works. Thank you for all the support and interest in my work over these years.
+---
 
-## Dynamic Universe
-Collection of scripts that aim to reduce the static nature of X4 Foundations and expand the sandbox experience.
+## What it does, in one paragraph
 
-**Active modules in this fork:** Dynamic War, Dynamic News, Galactic Politics (Vassal System — new in this fork).
+X4's late game tends to collapse into a Xenon-and-Argon two-faction wasteland because losing factions get eaten without diplomatic alternatives. Dynamic Universe layers three reactive systems on top of vanilla diplomacy to keep the galaxy interesting: **Dynamic War** periodically shifts AI-faction relations based on military strength and shared enemies, **Dynamic News** turns those changes (plus station construction/destruction events) into a logbook feed, and **Galactic Politics** (new in this fork) introduces vassalage — losing factions become tributaries instead of dying, with garrison fleets, happiness mechanics, rebellions, coups, and a player broker menu. Everything is opt-in via the in-game mod menu and ships disabled by default.
 
-**Removed entirely (no longer in codebase):** Jobs Expeditions (DAJobsEXP), Jobs Smart Sector Tags (DAJobsSST), Evolution, Fill, the original mass-jobs library — full deletion via the cleanup commits.
+---
 
-**Still in codebase but hidden from the mod menu:** Gate, God, Trader Profit, Infestation, Blueprint Analysis. Their `$DA*Enable` flags default to `false` so the mechanics are inert. Information Menus and Blueprint Analysis are planned as separate companion mods rather than being re-surfaced here.
-## Menu Option Information
-- Most menu entries will display text that may help understand the option or reason when hovered over.
-## Dynamic War
-- Scripted events at set intervals that change relations between two AI factions. The stronger a faction is, the more enemies it will likely have. The weaker a faction is, the more friends it will likely have.
-- Uses the following factors to determine factions selected for event: Accrued chance from times not selected, Military strength, Sectors owned, Primary Race, Current Relations, and Shared Allies/Enemies Count.
-- Adjustable interval, event weight, misc factors, and ignored factions.
-- Relation change script can be disabled.
-- Allows locking / unlocking relations for factions.
-- Adds menus for improving or decreasing relations between factions.
-- Can earn "favors" from factions that player has 20+ relation with for free relation changes.
-- Has optional script that limits positive relation level between two factions to avoid them meeting the "self" requirement for job locations.
-- Events for Dynamic War include: Best Friends (Instant max relations), Big Boost (+15 relation), Small Boost (+5 relation), Small Blow (-5 relation), Big Blow (-15 relation), and Nemesis (Instant max negative relations).
-## Dynamic News
-- Collects information from included scripts and events from around the galaxy to provide player with additional information.
-- Supported events include: Major station destroyed, Economic station expanded, Economic station started, and Sector changed ownership.
-- Outputs news events at adjustable interval and combines multiple reports per faction to avoid spam.
-- Can enable/disable the script, notifications, logbook entries, and the recent news database.
-## Blueprint Analysis
-- Inspired by Jack the Strippers mod of the same name. Permission to rework and continue mod granted by author.
-- Allows scanning of station modules and ships to gain blueprints.
-- User adjustable settings for number of scans required for blueprint unlock.
-- Player owned ships performing police behaviour grant credit for scans as well.
-- Scan progress is affected by level of scanner on ship. Generic scanner grants one, police scanner grants two, etc.
-## Vassal System
+## Differences from the original DeadAir Scripts
 
-Off by default. Switch it on under Mod Menu → Galactic Politics. Once on, vassalages start forming three ways.
+If you're coming from upstream *DeadAir Scripts / Dynamic Universe* (v1.13 / v7.5RC), here's what changed:
 
-The first is a Dynamic War roll. On each DW interval the system sorts every claimspace faction by military strength and considers pairs drawn from the top three against the bottom three. If the top faction holds at least +0.25 relation with the bottom and the pair isn't diplomacy-excluded by vanilla (the lore locks — Argon↔Antigone, Terran↔Pioneers, Teladi↔Ministry, Trinity↔Holy Order/Paranid/Buccaneers, etc.), the pair is eligible. One is picked at random and the vassalage forms.
+**New features (this fork only):**
+- **Galactic Politics / Vassal System** — full vassalage mechanic with three vassalize paths (Dynamic War roll, conquest, player broker), tribute, happiness, rebellions, coups, succession, embassies, levies, war exhaustion, coalition rebellions. The headline feature of the fork. See [Modules § Galactic Politics](#galactic-politics-vassal-system).
+- **X4 9.0 RC4 compatibility** — original was last shipped against 7.x. Patcher-side fixes for the 9.0 strict parser (`@expr?` syntax, `<return/>` placement, `find_station space=` required, `keys.list.count` deprecated, etc.), diplomacy API guards (`isdiplomacyexcluded`, Protocol Null), and vanilla shape changes in `aiscripts/order.move.recon.xml` + `md/factionlogic_economy.xml`.
+- **Faction Dossier** — read-only menu summarizing per-faction sector count, military strength, treasury, vassalage status. Replaces the removed Information Menus with a narrower, vassal-aware view.
+- **Suzerain Presence** — vassal sectors share the suzerain's police authority. Antigone and Holy Order police-patrol jobs extend through ally-relation sectors so policing flows along vassal lines.
+- **Police outsourcing menu** — sell sector police rights to an AI faction for ongoing credit revenue.
 
-The second is conquest. Whenever a sector changes owner and the loser ends up with three or fewer sectors, the system rolls against the Conquest Chance setting (35% default) and turns the loser into a vassal of the conqueror instead of letting them collapse. This is what keeps late-game maps from rotting into a Xenon-and-Argon two-faction wasteland.
+**Removed entirely:**
+- Trader Profit, Infestation, Gate, Evolution, God, Fill, Jobs Expeditions, Jobs Smart Sector Tags, the original 8779-line mass-jobs library, Information Menus, Blueprint Analysis. Diff surface dropped from ~hundreds of files to a small footprint (see [What we touch in vanilla](#what-we-touch-in-vanilla)).
 
-The third is the player, via Galactic Politics → Broker Vassalage. You pick a candidate suzerain and the menu lists potential vassals you can buy a vassalage into. Cost scales with the candidate vassal's worth (0.01% of its computed value) or its sector count when no treasury reading exists yet, plus a chunk for the suzerain's military. A friendly pair sits around 50M Cr; a hostile-leaning pair gets multiplied up to 5× and is capped at 2G total. The old +0.5 minimum relation gate is gone — anything down to -0.5 relation can be brokered, the math just costs more the worse the relation is.
+**Renames / breaking changes:**
+- Mod ID: `DeadAir_Scripts` → `dynamic_universe`. **This is a save-compat break** — vassal state stored under the old ID won't migrate. Anyone using the upstream vassal mechanic (there wasn't one) would have to restart.
+- Internal identifiers: `DeadAir*` → `DynamicUniverse*`, `$DA*` → `$DU*` (~262 vars). Mostly cosmetic but affects any companion mod that read upstream's internal variables (none known to exist).
+- User-facing menu text: "DA Mod" / "DA Dynamic War" → unprefixed.
 
-When a vassalage forms, the suzerain's relation to the vassal is set to +1.0 and locked. Any active attack orders between the two factions get cancelled so the new "allies" stop shooting each other, with the exception of player-controlled ships currently bound to a mission control entity — those are left alone so vanilla story sequences don't break. The vassal's HQ sector plus up to two more of its owned sectors each get a garrison fleet: one destroyer, two frigates, four fighters, race-matched to the suzerain and built from the appropriate faction's ship line (Yaki and Pirate factions use their distinct hulls; the rest share primary-race designs). These ships spawn at the suzerain's actual shipyard or wharf — not at the vassal's HQ — and fly to the vassal sector under a Patrol order. If the suzerain has no shipbuilding capability anywhere, the spawn falls back to materializing in the target sector. Sector count and reinforcement threshold are both configurable; when alive garrison count drops below 50% of original, a fresh fleet dispatches from the shipyard on the next happiness tick.
+**Documentation / tooling (new):**
+- `docs/architecture.md`, `docs/vassal_system.md`, `docs/md_9.0_gotchas.md`, `docs/compat_principles.md`, `docs/migrations.md`, `docs/diplomacy_ui_investigation.md`, `docs/toolchain.md`.
+- An external Rust **xpath validator** that checks every `<add>/<replace>/<remove>` diff selector against a vanilla snapshot, run on every X4 version bump. Source isn't in this repo; build instructions in `docs/toolchain.md`.
+- `scripts/tail-mod-log.ps1` for filtered debuglog tailing.
 
-Tribute runs every DW interval. X4's AI factions don't actually track credits internally, so tribute is a virtual ledger maintained by the mod. The vassal's "worth" is recomputed from its ships and stations, the tribute percentage (5% default) of that figure is added to the suzerain's virtual balance and subtracted from the vassal's. When the player is the suzerain, half the computed tribute is paid out as real credits, capped at 50M per tick so it doesn't break the economy. The player can't be vassalized.
+**What stayed the same:**
+- Dynamic War and Dynamic News mechanics are upstream's design and largely upstream's code with 9.0 polish + a few bug fixes (player-in-DW-dropdown, broker cost overflow, integer-typing on huge worth values, etc.).
+- The `t/0001.xml` localization page id `33232474` is preserved — changing it would touch hundreds of `{33232474,N}` lookups for no user benefit.
+- Original DeadAir GPL v3 license, original git history (v1.01 → v7.5RC2 → v1.13), and DeadAir's retirement note are all preserved verbatim. See [Attribution & License](#attribution--license).
 
-The tribute percentage is dynamic for AI suzerains, but in policy moves rather than a continuous dial. Every ~20 minutes per vassal the suzerain reviews the rate and steps it ±1% toward a target. The base target is 5% in the middle band (happiness 40-70), 8% above 70 (squeeze a content vassal), 2% below 40 (loosen the leash on a restless one). On top of that, each ongoing claimspace war the suzerain is currently fighting beyond the first adds +1% to the target — a warring suzerain demands more from its vassals to feed the war effort. The hard cap is 12%. The whole loop is self-balancing: more wars → higher tribute → faster happiness drain → suzerain has to spend more virtual credits on auto-gifts to stabilize the vassal, depleting the war chest it just tried to fill. Aggressive empires pay an internal cost to hold themselves together. Player suzerains default to manual control — auto-adjust is off, the slider stays authoritative, but you can flip it on per-vassal under Manage.
+---
 
-Happiness starts at 60 and changes every ~5 minutes. The drains: tribute above 3% costs 0.75 happiness per percent above (so default 5% = -1.5/tick); cultural mismatch when vassal and suzerain don't share primary race is -1/tick by default (configurable, splinter factions like Argon/Antigone share race so this doesn't apply to them); the vassal's combined-bloc military meeting or exceeding the suzerain's is -3/tick (an overextended suzerain can't hold a stronger vassal); each sector the vassal lost this tick is -3; each ongoing suzerain war is -1 up to -4 total; vassals losing fight-purpose ships drains by loss ratio up to -5 (your protection isn't protecting). The lifts: each enemy that the vassal and suzerain both face is +1; suzerain military at 1.5× or more of combined vassals is +1; each sector the suzerain gained this tick is +2. Net per-tick delta clamps to [-15, +8].
+## Compatibility
 
-When happiness drops under 40, AI suzerains automatically dip into their virtual treasury to stabilize: +5 happiness, costing vassal_worth/2000 in virt-Cr. The boost is intentionally modest — it brings a struggling vassal back from the brink, it doesn't peg them at 100. A rich AI suzerain can keep an unhappy vassal hovering in the high 30s to low 40s indefinitely. A broke AI suzerain whose virtual balance won't cover the gift skips the gift and the vassal continues down toward rebellion. The player can also gift manually: 5M Cr for +10 happiness, button per vassal under Manage.
+| Thing | Version |
+|---|---|
+| X4: Foundations | **9.0 RC4** (`<dependency version="900"/>` in `content.xml`) |
+| Required dependency | [SirNukes Mod Support APIs](https://www.nexusmods.com/x4foundations/mods/503) (Steam ID `ws_2042901274`) |
+| Optional dependencies | All Egosoft DLCs (split, terran, pirate, boron, timelines), [DeadAir Economy Overhaul](https://www.nexusmods.com/x4foundations/mods/2139) (community-adopted by Chem O'Dun for 9.0 — highly recommended) |
+| Not compatible with | Old standalone versions of DeadAir's Dynamic War, Evolution, Fill, Jobs, Gate |
 
-Below 30 happiness a rebellion roll fires each tick. The math: an "individual" score scales from happiness (lower = more pressure, capped contribution +30) plus +20 if the vassal's own military exceeds the suzerain's, plus +15 if the vassal lost two or more sectors this tick. A "collective" score from how badly the combined-vassal military overshoots the suzerain's, capped at +40. Total chance is capped at 60% per check. When the roll succeeds, the vassal breaks free: relation lock is removed, both sides set to -0.5 toward each other (unless they're diplomacy-locked, in which case the change is silently skipped — a vanilla limitation), the existing garrison's ship ownership transfers to the rebel (they defect), and up to two claimspace factions hostile to the former suzerain each dispatch a 7-ship support fleet from their shipyards to the rebel's home sector. The rebel sits on a 60-minute cooldown before it can be vassalized again, plus a grace window where Dynamic War events skip it in negative rolls so it isn't kicked while down.
+The diff surface is intentionally small (see [What we touch in vanilla](#what-we-touch-in-vanilla)). Mods that don't replace entire vanilla XML roots will coexist fine.
 
-Each DW interval there's also a 20% chance per vassal that the vassal dispatches an expedition fleet against one of the suzerain's enemies. Same fleet shape as garrisons, same shipyard-dispatch model. Expeditions despawn after 30 minutes. This is what makes vassalage feel like a military partnership instead of a paper one.
+---
 
-Vassalage ends when: the player manually releases (button per vassal, or Release All / Safe Uninstall in bulk), the suzerain is destroyed (vassal frees itself), the suzerain shrinks to two or fewer sectors (auto-release), the vassal is destroyed (entry removed), happiness collapses into rebellion (above), or the 3%-per-tick random release roll fires.
+## Installation
 
-See `docs/vassal_system.md` for the original design spec and `docs/architecture.md` for technical layout.
-## Files Adjusted and Possible Conflicts
+1. Drop the mod into your X4 extensions folder — the directory name must match `content.xml id`:
+   ```
+   <X4 install dir>/extensions/dynamic_universe/
+   ```
+2. Enable in the in-game **Extensions** menu (main menu → Settings → Extensions).
+3. Load a save. Open **Mod Menu → Galactic Politics** to switch features on.
 
-This fork's diff surface is smaller than the original DeadAir Scripts (no more baskets/equipmentmods/wares/maps changes, no more 8779-line jobs.xml) but adds five DLC override files. See `docs/compat_principles.md` for the rules we follow when writing diffs.
+> **Folder name matters.** The mod's internal id is `dynamic_universe`. If your folder is named `deadair_scripts` (the old upstream name) or anything else, X4 won't find it. Rename the folder.
 
-**Base-game files**
-- `aiscripts/order.build.recycle.xml` — single attribute replace on the `usecover` param default, scoped by `[@id='Recycle']`. Removes cover usage for recyclers owned by non-economic non-claimspace factions (Xenon mostly).
-- `aiscripts/order.move.recon.xml` — single `<add pos="before">` inside the police scan branch. Signals `policeassetscannedship` to the player when their police ships scan a non-player ship. Pure addition, no replacement.
-- `libraries/colors.xml` — `<add>` of UI color mappings (prefix `da_*`). Pure addition.
-- `libraries/diplomacy.xml` — `<add>` of one new agent diplomacy action `propose_vassalage` plus a `<patch>` for the relations table to enable the action. Additive only.
-- `libraries/jobs.xml` — four surgical attribute swaps on Antigone + Holy Order police patrol job filters (`@relation` and `@comparison`). No element replacement, no full-job override.
-- `libraries/mapdefaults.xml` — four attribute swaps on the `@tags` of four base-game cluster datasets, adding the `daxenoncore` tag for Xenon-anomaly sector flagging. Affects 4 sectors. Other mods that change those same `@tags` attributes will conflict.
-- `libraries/modules.xml` — two attribute swaps on `prod_gen_refinedmetals`'s `@race` and `@faction` lists (removes Teladi/Ministry/Scaleplate). Non-sequential, validator-clean.
-- `md/factionlogic_economy.xml` — three deep-nested `<add>` operations that signal Dynamic News when stations expand or start construction. Pure addition inside vanilla `Econ_Manager` library cues. Vulnerable to vanilla restructuring the Econ_Manager tree.
-- `t/0001.xml` — uses page id `33232474` for all our localized strings. Should only conflict with someone who is too inspired by DeadAir4.
+---
 
-**DLC overrides** (each in `extensions/<dlc_id>/libraries/`)
-- `ego_dlc_terran/libraries/jobs.xml` — one whole-element `<replace>` on `terran_police_patrol_s`'s `<location>` filter. Reason: vanilla element uses `faction="terran"`, our target uses `policefaction="terran"`. Attribute-name change requires element replace under current X4 diff syntax — documented tradeoff.
-- `ego_dlc_terran/libraries/mapdefaults.xml` — one attribute swap on the `@tags` of cluster 112's sector dataset.
-- `ego_dlc_split/libraries/jobs.xml` — same shape as Terran — whole-element `<location>` replace on `zyarth_police_patrol_s`. Same documented tradeoff.
-- `ego_dlc_split/libraries/mapdefaults.xml` — two attribute swaps on `@tags` for clusters 415 and 424.
-- `ego_dlc_boron/libraries/jobs.xml` — two surgical attribute swaps on `boron_police_patrol_s`'s `@relation` and `@comparison`. No element replacement.
+## Modules
 
-**What we never do:** replace MD cue bodies, replace vanilla library roots, modify save-format files, override vanilla story content, change relations between `isdiplomacyexcluded` pairs.
+### Dynamic War
 
-**Maps directories no longer touched** — original DeadAir Scripts added zones to `maps/galaxy.xml`, `maps/sectors.xml`, `maps/zones.xml` (plus Split/Terran DLC variants). All removed in this fork via the cleanup commits. If you ran a save on the original DeadAir Scripts with anomalies in those added zones, those anomalies don't exist here.
-## Dependencies
-- Sir Nukes Mod Support API
-- DeadAir Eco (optional but highly recommended)
-## Installation Info
-- This mod is not compatible and must not be used with the older versions of Dynamic War, Evolution, Fill, Jobs, and Gate.
-- Folder should be named "deadair_scripts" in case of added assets in future.
-## Vassal system and story missions
+Periodic AI-to-AI relation shifts driven by military strength, shared allies/enemies, and primary race. Six event types — Best Friends (instant max relation), Big Boost (+15), Small Boost (+5), Small Blow (-5), Big Blow (-15), Nemesis (instant max negative). Strong factions accrue enemies; weak ones accrue allies. Adjustable interval, event weights, ignored-factions list, and a soft cap that prevents AI relations from meeting the "self" threshold required for shared job locations.
 
-Two layers of story safety apply, one engine-level and one mod-level.
+Player tools:
+- **Increase / Decrease Relations** — credit-cost or favor-paid relation changes between two factions.
+- **War History** — recent DW events.
+- **Ignored Factions** — exclude factions from being picked by random events (also respected by Galactic Politics).
 
-The first is `isdiplomacyexcluded`. X4 marks certain faction pairs as diplomacy-excluded so vanilla story scripts can hold relations stable — Argon↔Antigone, Terran↔Pioneers, Teladi↔Ministry, Trinity↔Holy Order/Paranid/Buccaneers, Paranid↔Holy Order, Buccaneers↔Holy Order/Paranid, Split↔Free Split, and the DLC-story pairs like Terran↔Argon while Covert Operations is mid-arc. Every vassalize path in the mod (DW roll, conquest roll, broker menu, even the debug Make-Me-Suzerain button) respects this marker. The relation-setting code in the rebellion path and the war-alignment drift respect it too. When a vanilla story clears a lock (Covert Operations clearing Terran↔Argon, for example), those pairs naturally become available without any mod intervention. You do not need to add anything to a list — the engine and the mod stay in sync.
+### Dynamic News
 
-The second is the DA Dynamic War Ignored Factions menu, which is a mod-side list. Anything you put on it is excluded from random DW vassalize, conquest vassalize, and the broker menu. Use this when a story has special meaning for a specific faction but no diplomacy lock to enforce it.
+Logbook + notification feed for galaxy-scale events: major station destroyed, economic stations expanded/started, sector ownership changes, plus all Galactic Politics events (vassalize, rebel, release, coup, etc.). Combines reports per faction to avoid notification spam. Configurable interval, separate toggles for notifications / logbook / news-storage database.
 
-Vassal relations are locked at +1.0. If a story arc you care about depends on a specific relation between two factions that aren't diplomacy-locked, vassalizing one of them may break that story — the ignored-factions list is your tool.
-## Uninstalling (important if you ever used the Vassal system)
-- The Vassal system applies persistent X4 relation locks to vassal factions. Those locks survive removal of this mod and cannot be reversed once the mod's scripts are gone.
-- Before uninstalling, open DA Galactic Politics and click either **Release All Vassals** or **Safe Uninstall**. Safe Uninstall also disables the vassal system and clears all related tables.
-- If you never enabled the Vassal system, nothing special is needed.
-- If you uninstalled and notice that certain factions never change relations, reinstall this mod and run the cleanup above — the vassal data persists across reinstall.
-## Requesting Help
-- It is very helpful to have a debug log with the debug options enabled.
-- Include your mod list in any bug reports. There are a lot of poorly written mods out there.
-- Best place to contact me is via @ on Egosoft Discord modding channel.
-## Random Notes
-- Can't believe I have to add this. No, you are not allowed to just copy my stuff and put it into your own mod or modpack WITHOUT permission.
+### Galactic Politics (Vassal System)
 
+New in this fork. Off by default; switch on under **Mod Menu → Galactic Politics**. Once on, vassalages form three ways:
+
+- **Dynamic War roll** — every DW interval, the system considers pairs drawn from the top-3 strongest and bottom-3 weakest claimspace factions. If the strong one already has ≥ +0.25 relation with the weak one and the pair isn't a vanilla diplomacy-lock, the pair is eligible and one rolls into vassalage.
+- **Conquest** — when a sector changes hands and the loser is left with ≤ 3 sectors, a 35% roll (configurable) converts them into a vassal of the conqueror instead of letting them collapse.
+- **Player broker** — pick a suzerain, see candidate vassals with per-pair credit costs scaling with vassal worth (or sector count fallback), suzerain military, and hostility multiplier (1× friendly → 5× hostile, capped at 2G Cr).
+
+Once a vassalage forms, a garrison fleet (1 destroyer + 2 frigates + 4 fighters, race-matched to the suzerain) dispatches from the suzerain's actual shipyard to the vassal's HQ sector plus up to two more vassal-owned sectors. Tribute is a virtual ledger — every DW interval the vassal's computed worth times the tribute % is transferred from vassal's virt-balance to suzerain's. When the player is the suzerain, half the computed tribute becomes real Cr (capped at 50M/tick).
+
+Happiness ticks every ~5 min. Drains from high tribute, cultural mismatch, the vassal being stronger than the suzerain, sectors lost, the suzerain being at war. Lifts from shared enemies, a strong protective suzerain, sectors gained. AI suzerains auto-gift to stabilize unhappy vassals at the cost of their virtual treasury. Below 30 happiness, rebellion rolls fire — successful rebels defect with the garrison ships, get a 60 min cooldown, and may attract supporter fleets from hostile-to-former-suzerain factions.
+
+A diplomatic **embassy** (defense station, owned by suzerain) is built in the vassal's HQ sector as a `componentstate.construction` site, so the suzerain's economy actually constructs it — it isn't spawn-cheated. Defense fleet ships dispatch from the suzerain's shipyard to protect it during the build.
+
+Other features:
+- **Coup d'état** (player broker) — flip a vassal between suzerains; the old suzerain's embassy + garrison stay in the new vassal's sector as enemy assets.
+- **Vassal levy** — order existing vassal combat ships to patrol a sector for ~20 min at the cost of happiness. No new ships spawn.
+- **Vassal expeditions** — 20% chance per DW interval that a vassal sends an expedition fleet against one of the suzerain's enemies.
+- **Succession** — when a suzerain is destroyed and has multiple vassals, the strongest vassal inherits the others (refusal chance per sibling configurable).
+- **Coalition rebellions** — when multiple vassals of the same suzerain rebel on the same tick, the news layer reports it as one coalition event instead of N solo ones.
+- **War exhaustion** — long-running wars can drive a vassal toward capitulating to a third-party suzerain.
+- **Police outsourcing** — separate mechanic; the player can sell sector police rights to an AI faction for credits.
+- **Faction Dossier** — read-only menu showing per-faction sector count, military strength, treasury, vassalage status.
+
+See [`docs/vassal_system.md`](docs/vassal_system.md) for full mechanics, exit conditions, and the trigger/event/exit tables.
+
+---
+
+## Save-game safety
+
+The vassal system applies persistent X4 `relation_locked` flags. **Those locks survive uninstall** and cannot be reversed once the mod's scripts are gone. Before removing the mod:
+
+1. Open **Mod Menu → Galactic Politics**.
+2. Click **Release All Vassals** (clears vassalages but keeps the system on for future use), OR **Safe Uninstall** (releases everything *and* disables the system).
+
+If you never enabled the vassal system, nothing special is needed for uninstall.
+
+If you forgot and notice factions whose relations never change after uninstall, reinstall, run **Safe Uninstall**, then uninstall again. The vassal data persists across reinstall — this is intentional, it's how the cleanup works.
+
+---
+
+## Story-mission safety
+
+Two layers, one engine-level and one mod-level:
+
+1. **`isdiplomacyexcluded`** — X4 marks certain faction pairs as diplomacy-excluded so vanilla story scripts can hold relations stable (Argon↔Antigone, Terran↔Pioneers, Teladi↔Ministry, Trinity↔Holy Order, etc.). Every vassalize path in the mod respects this marker. When a vanilla story clears a lock (e.g. Covert Operations clearing Terran↔Argon), those pairs naturally become available without any mod intervention.
+2. **DW Ignored Factions list** — mod-side, user-configurable under **Dynamic War → Ignored Factions**. Anything on this list is excluded from DW vassalize, conquest vassalize, and the broker menu. Use this for story arcs that don't have an engine-level diplomacy lock.
+
+Vassal relations are locked at +1.0. If a story arc you care about depends on a specific relation between two factions that aren't diplomacy-locked, vassalizing one of them can break that story — the ignored-factions list is the safety valve.
+
+---
+
+## What we touch in vanilla
+
+Surface is minimal by design. See [`docs/compat_principles.md`](docs/compat_principles.md) for the rules we follow.
+
+**Base-game files:**
+- `aiscripts/order.build.recycle.xml` — single attribute replace (recycler cover usage)
+- `aiscripts/order.move.recon.xml` — single `<add pos="before">` (police scan signal)
+- `libraries/colors.xml` — `<add>` of `da_*` UI colors
+- `libraries/diplomacy.xml` — `<add>` of `propose_vassalage` agent diplomacy action + `<patch>` for the relations table
+- `libraries/jobs.xml` — four attribute swaps on Antigone + Holy Order police patrol filters
+- `libraries/mapdefaults.xml` — four `@tags` attribute swaps (Xenon-anomaly tagging on 4 sectors)
+- `libraries/modules.xml` — two attribute swaps on `prod_gen_refinedmetals`
+- `md/factionlogic_economy.xml` — three nested `<add>` ops for station event signalling
+- `t/0001.xml` — uses page id `33232474` for all our localization strings
+
+**DLC overrides** (`extensions/ego_dlc_*/libraries/`):
+- `ego_dlc_terran/libraries/jobs.xml` + `mapdefaults.xml` — police patrol + sector tags
+- `ego_dlc_split/libraries/jobs.xml` + `mapdefaults.xml` — police patrol + sector tags
+- `ego_dlc_boron/libraries/jobs.xml` — police patrol
+
+**Things we never do:** replace MD cue bodies, replace vanilla library roots, modify save-format files, override story content, change relations between `isdiplomacyexcluded` pairs.
+
+---
+
+## Contributing
+
+Issues and PRs welcome. Some norms before opening one:
+
+- **One topic per PR.** Small focused changes get merged faster than mega-refactors.
+- **Conventional Commits** — `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, scope optional. Squash if needed before the merge so the history stays readable.
+- **No `Co-Authored-By` AI / Claude / Anthropic trailers.** Drop them before pushing.
+- **Run the validator before submitting changes that touch `libraries/*.xml`:** see [`docs/toolchain.md`](docs/toolchain.md) for setup. The validator is a separate Rust tool you build from source.
+- **Test in-game before submitting MD changes.** XML parsing clean ≠ working. The Self-Check button under Galactic Politics → Detailed Debug helps; so does `scripts/tail-mod-log.ps1 -Live -ErrorsOnly`.
+- **Check `docs/md_9.0_gotchas.md`** before writing new MD. The patterns there were hit by user testing; the doc catalogues each one with the fix.
+- **Diff philosophy** — additive over replacement, scoped xpath selectors over root-level replaces. See [`docs/compat_principles.md`](docs/compat_principles.md).
+
+If you want to take Dynamic Universe in a substantially different direction, fork it. GPL v3 explicitly protects that right. Send a heads-up though — happy to link forks from here.
+
+### Repo layout
+
+```
+content.xml             Mod manifest (X4 reads this)
+libraries/*.xml         Base-game diff patches
+extensions/ego_dlc_*/   DLC-specific diff patches
+md/dynamicuniverse.xml  Main MD script (~5500 lines — vassal system, dynamic war, dynamic news)
+md/dynamicuniversemenus.xml   Menu MD script (~7700 lines — all Simple Menu API menus)
+md/factionlogic_economy.xml   Extension hook into vanilla economy events
+t/0001.xml              Localization strings, page id 33232474
+scripts/tail-mod-log.ps1  Log filtering helper for development
+docs/                   Architecture, gotchas, design spec, compat principles, migrations
+```
+
+---
+
+## Reporting issues
+
+When reporting a bug, please include:
+
+1. **X4 version** (we target 9.0 RC4 — older versions are not supported).
+2. **DLC list** (split, terran, pirate, boron, timelines).
+3. **Other mods loaded.** Modlist conflicts are responsible for ~80% of "bug" reports.
+4. **A debug log** with the relevant module's `DetailedDebug` toggle enabled (under that module's menu). The log file is `$USERPROFILE/Documents/Egosoft/X4/<userid>/debuglog.txt`. The Self-Check button writes a structured `[DU-CHECK]` block to the player logbook — paste that if vassal-system related.
+5. **Save file** (if relevant and small enough to attach), or steps to reproduce.
+
+Contact: GitHub issues preferred. Egosoft Discord modding channel works too.
+
+---
+
+## Attribution & License
+
+Original "Dynamic Universe / Deadair Scripts" © DeadAir, released under GPL v3 in September 2025 with explicit permission to continue ([retirement note from 2025-09-23](#original-authors-retirement-note)):
+
+> *"I have decided to completely retire from X4 Modding. I have added licenses to Eco, Scripts, and DeadTater if any persons are interested in using, modifying, or continuing my works. Thank you for all the support and interest in my work over these years."*
+
+This fork is maintained by **IllustrisJack**, also under **GPL v3** (see [`LICENSE`](LICENSE)). Significant modifications since the original:
+
+- X4 9.0 RC4 compatibility (parser strictness, diplomacy API changes, isdiplomacyexcluded, Protocol Null)
+- New Galactic Politics / Vassal System (see above)
+- XPath validator toolchain for diff-selector regression checks
+- Removal of submods that didn't fit this fork's scope (Trader Profit, Infestation, Gate, Evolution, God, Fill, Jobs Expeditions, Jobs Smart Sector Tags, Information Menus)
+- Internal identifier rename `DeadAir*` → `DynamicUniverse*` / `$DA*` → `$DU*`
+- Extensive documentation under [`docs/`](docs/)
+
+The original git history is preserved in this repo — every DeadAir commit from `Initial upload` (v1.01) through `v1.13` / `v7.5RC` is still in `git log`. Diffs from the fork point onward are this fork's contributions.
+
+### Original author's retirement note
+
+Quoted verbatim from upstream README, September 2025:
+
+> *I have decided to completely retire from X4 Modding. I have added licenses to Eco, Scripts, and DeadTater if any persons are interested in using, modifying, or continuing my works. Thank you for all the support and interest in my work over these years.*
+
+---
+
+## Acknowledgements
+
+- **DeadAir** for the original Dynamic Universe framework and for releasing it under GPL v3 with a clear go-ahead to continue.
+- **SirNukes** for the [Mod Support APIs](https://www.nexusmods.com/x4foundations/mods/503) (Simple Menu API in particular makes the whole UI surface possible).
+- **Jack the Stripper** for the original Blueprint Analysis concept (currently in-codebase but inert — planned as a separate companion mod).
+- **Egosoft** for X4.
