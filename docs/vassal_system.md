@@ -16,13 +16,13 @@ All entries are implementation deltas applied after v1 design lock. Restart-requ
 - **Initial happiness:** 50 → **60** (gives a buffer so brand-new vassalages don't slide into rebellion within a few ticks if a few drains stack)
 - **Tribute drain:** `-(pct - 3.0) × 1.5` → `× 0.75` (halved). Default 5% tribute now costs `-1.5/tick` instead of `-3/tick`.
 - **Vassal-too-strong penalty:** `-5/tick` → `-3/tick` when V's combined-bloc military ≥ S's military
-- **Cultural mismatch penalty:** **new factor** — `-$DAVassalCulturalMismatchPenalty/tick` (default `1.0`) when V's primary race ≠ S's primary race. Splinter factions (Argon/Antigone, Terran/Pioneers, Teladi/Ministry, Paranid/Holy Order/Trinity, Split/FreeSplit) share race so 0 penalty; cross-race vassalages drift hostile over time.
-- **Ship-loss penalty:** **new factor** — drop in V's fight-purpose threatscore since last tick contributes `-min(5.0, lossRatio × 50)` once per tick. Cause-agnostic (Xenon, suzerain crossfire, friendly fire all count). Gated by `$DAVassalShipLossHappinessEnable`.
+- **Cultural mismatch penalty:** **new factor** — `-$DUVassalCulturalMismatchPenalty/tick` (default `1.0`) when V's primary race ≠ S's primary race. Splinter factions (Argon/Antigone, Terran/Pioneers, Teladi/Ministry, Paranid/Holy Order/Trinity, Split/FreeSplit) share race so 0 penalty; cross-race vassalages drift hostile over time.
+- **Ship-loss penalty:** **new factor** — drop in V's fight-purpose threatscore since last tick contributes `-min(5.0, lossRatio × 50)` once per tick. Cause-agnostic (Xenon, suzerain crossfire, friendly fire all count). Gated by `$DUVassalShipLossHappinessEnable`.
 - **Net effect:** rebellions on default-config cross-race player-suzerain vassalages now take ~35-40 minutes instead of ~15.
 
 ### 0.2 AI auto-gift loop
 
-`EventVassalHappinessTick` now: when suzerain is AI, vassal happiness post-delta < 40, vassal happiness > 0 (not terminal), and suzerain's virtual treasury balance ≥ gift cost, apply `+5` to delta and deduct `vassal_worth / 2000` virt-Cr from the suzerain's `$DAFactionTreasury.{S}.$VirtBalance`.
+`EventVassalHappinessTick` now: when suzerain is AI, vassal happiness post-delta < 40, vassal happiness > 0 (not terminal), and suzerain's virtual treasury balance ≥ gift cost, apply `+5` to delta and deduct `vassal_worth / 2000` virt-Cr from the suzerain's `$DUFactionTreasury.{S}.$VirtBalance`.
 
 Anti-peg safeguards (per user direction "don't peg to max"):
 - +5 boost intentionally modest — keeps happiness in the 35-45 range under heavy drain, doesn't push it to 100
@@ -30,20 +30,20 @@ Anti-peg safeguards (per user direction "don't peg to max"):
 - Skipped if suzerain virt-balance < cost → broke suzerains lose vassals to rebellion (no infinite stabilization)
 - Skip threshold of 40 means content vassals don't receive unneeded gifts
 
-Field: `$DAVassalTable.{V}.$LastAIGiftAt` (timestamp, debug only). Master toggle: `$DAVassalAutoGiftEnable` (default true).
+Field: `$DUVassalTable.{V}.$LastAIGiftAt` (timestamp, debug only). Master toggle: `$DUVassalAutoGiftEnable` (default true).
 
 ### 0.3 Dynamic tribute (policy review model)
 
 Earlier prototype used per-tick smooth drift; replaced with **decision-sized periodic review** for realism:
 
 - Per-vassal `$DynamicTribute` flag, defaulted true for AI suzerains, false for player suzerains (player keeps manual slider). Per-vassal toggle in Manage menu.
-- Review cadence: every `$DAVassalTributeReviewMinutes` (default 20) per vassal, tracked via `$DAVassalTable.{V}.$LastTributeReview`.
+- Review cadence: every `$DUVassalTributeReviewMinutes` (default 20) per vassal, tracked via `$DUVassalTable.{V}.$LastTributeReview`.
 - Step: **±1.0%** per review (not 0.25%).
 - Target band based on current happiness: 8% (>70), 5% (40-70), 2% (<40).
 - **War-pressure modifier:** each ongoing suzerain claimspace war beyond the first adds +1% to target. So a suzerain at 3 wars sets target = base + 2. Hard cap 12%.
 - **Self-balancing loop:** more wars → higher tribute → faster happiness drain → suzerain spends more virt-Cr on auto-gifts → war chest drains. Aggressive empires pay an internal cost to hold themselves together.
 
-Master toggle: `$DAVassalDynamicTributeEnable` (default true). When off, `$TributePct` stays where it was set.
+Master toggle: `$DUVassalDynamicTributeEnable` (default true). When off, `$TributePct` stays where it was set.
 
 ### 0.4 Broker cost rework
 
@@ -73,7 +73,7 @@ clamp [50M, 2G]
 - Original: only fires when defeated faction is reduced to 1-3 sectors after a sector change.
 - Added: **HQ-loss** also triggers regardless of sector count (`find_station factionheadquarters="true" owner=oldOwner` returns null → HQ destroyed/captured).
 
-**Chance scaling** on top of base `$DAVassalConquestChance` (default 35):
+**Chance scaling** on top of base `$DUVassalConquestChance` (default 35):
 - 3 sectors remaining → `base × 1`
 - 2 sectors → `base × 1.5`
 - 1 sector → `base × 2`
@@ -85,16 +85,16 @@ So a 1-sector + HQ-lost defeat rolls ~95% capitulation chance; a 3-sector defeat
 **Source-tagging:** `$SourceTrigger` now distinguishes `'Conquest'` (territorial reduction) vs `'ConquestHQ'` (HQ destruction). Logbook gets per-trigger text. Manage menu shows the badge.
 
 **Conquest-specific start state:**
-- Initial happiness = `$DAVassalConquestInitialHappiness` (default 35) instead of 60 — they just lost territory, they're not happy.
-- Grace window `$DAVassalConquestGraceMinutes` (default 30 min) during which rebellion check skips the vassal — gives the AI auto-gift loop time to stabilize them before any rebellion roll fires. Tracked via `$DAVassalTable.{V}.$ConquestGraceUntil`.
+- Initial happiness = `$DUVassalConquestInitialHappiness` (default 35) instead of 60 — they just lost territory, they're not happy.
+- Grace window `$DUVassalConquestGraceMinutes` (default 30 min) during which rebellion check skips the vassal — gives the AI auto-gift loop time to stabilize them before any rebellion roll fires. Tracked via `$DUVassalTable.{V}.$ConquestGraceUntil`.
 
 ### 0.6 Multi-sector garrison + reinforcement
 
 - Original: 1 fleet of 7 ships in HQ sector.
-- Now: up to `$DAVassalGarrisonSectorCount` (default 3) fleets, one per vassal-owned sector (HQ first, then arbitrary). Tracked in `$GarrisonSectors`.
-- **Reinforcement** in happiness tick: prune destroyed ships from `$GarrisonShips`; if alive count < `$GarrisonExpectedCount × $DAVassalGarrisonReinforceThresholdPct%` (default 50%), dispatch a fresh 7-ship fleet from the suzerain's shipyard. Skipped for player suzerain.
+- Now: up to `$DUVassalGarrisonSectorCount` (default 3) fleets, one per vassal-owned sector (HQ first, then arbitrary). Tracked in `$GarrisonSectors`.
+- **Reinforcement** in happiness tick: prune destroyed ships from `$GarrisonShips`; if alive count < `$GarrisonExpectedCount × $DUVassalGarrisonReinforceThresholdPct%` (default 50%), dispatch a fresh 7-ship fleet from the suzerain's shipyard. Skipped for player suzerain.
 
-Master toggles: `$DAVassalGarrisonReinforceEnable` (default true), `$DAVassalGarrisonSectorCount` slider (1-8).
+Master toggles: `$DUVassalGarrisonReinforceEnable` (default true), `$DUVassalGarrisonSectorCount` slider (1-8).
 
 ### 0.7 Post-vassalize combat cleanup
 
@@ -102,15 +102,15 @@ On vassalize, cancel any active attack orders between the two factions' ships wh
 - Skip player-owned ships unless player IS the suzerain (don't break agent missions)
 - Skip ships with `@$ship.assignedcontrolentity` (mission-controlled)
 
-Master toggle: `$DAVassalCombatCleanupEnable` (default true).
+Master toggle: `$DUVassalCombatCleanupEnable` (default true).
 
 ### 0.8 Vassal expeditions
 
-`EventVassalExpeditionTick` runs each DW interval. Per vassal, rolls `$DAVassalExpeditionChance%` (default 20%) to dispatch a fleet against one of the suzerain's currently hostile claimspace targets. Same fleet structure as garrison (1 destroyer + 2 frigates + 4 fighters from suzerain's shipyard). Expires after `$DAVassalExpeditionDurationMinutes` (default 30); cleanup destroys remaining ships.
+`EventVassalExpeditionTick` runs each DW interval. Per vassal, rolls `$DUVassalExpeditionChance%` (default 20%) to dispatch a fleet against one of the suzerain's currently hostile claimspace targets. Same fleet structure as garrison (1 destroyer + 2 frigates + 4 fighters from suzerain's shipyard). Expires after `$DUVassalExpeditionDurationMinutes` (default 30); cleanup destroys remaining ships.
 
-Tracked as `[shipsList, targetSector, expiresAt]` tuples in `$DAVassalTable.{V}.$Expeditions`. Released vassals also clean up their expedition fleets in `Library_VassalRelease`.
+Tracked as `[shipsList, targetSector, expiresAt]` tuples in `$DUVassalTable.{V}.$Expeditions`. Released vassals also clean up their expedition fleets in `Library_VassalRelease`.
 
-Master toggle: `$DAVassalExpeditionEnable` (default true).
+Master toggle: `$DUVassalExpeditionEnable` (default true).
 
 ### 0.9 Police authority + Suzerain Presence
 
@@ -125,7 +125,7 @@ On vassalize, transfer vassal's police authority to **suzerain's own policefacti
 | Player | _skipped_ (player has no faction police) |
 | Pirate without policefaction defined | _skipped_ |
 
-Original police snapshot stored as `$DAVassalTable.{V}.$OriginalPolice` and restored on release/rebellion.
+Original police snapshot stored as `$DUVassalTable.{V}.$OriginalPolice` and restored on release/rebellion.
 
 **Combined with jobs.xml diffs** (`libraries/jobs.xml`, `extensions/ego_dlc_terran/libraries/jobs.xml`, `extensions/ego_dlc_boron/libraries/jobs.xml`, `extensions/ego_dlc_split/libraries/jobs.xml`): five isolationist factions' police patrol jobs are swapped from `faction=X relation=self` to `policefaction=X relation=ally comparison=ge`. Affected factions:
 - Antigone, Holy Order (base game `libraries/jobs.xml`)
@@ -139,9 +139,9 @@ Argon, Paranid, Trinity, Ministry already use the extension pattern in vanilla, 
 
 Pirate factions (Buccaneers, Scaleplate, Yaki), Pioneers, FreeSplit, Hatikvah, Alliance have no `policefaction`-filtered police job in vanilla and no diff was added for them. Vassalages with these as suzerain still transfer authority (so player gains scan rights) but no automatic patrol extension happens. Deliberate flavor: isolationist/outsider suzerains get the garrison fleet only.
 
-Master toggle: `$DAVassalSuzerainPresenceEnable` (default true) gates the police authority transfer at vassalize time and on the reconcile cue.
+Master toggle: `$DUVassalSuzerainPresenceEnable` (default true) gates the police authority transfer at vassalize time and on the reconcile cue.
 
-**Reconcile cue (`EventVassalReconcilePoliceOnLoad`):** fires on `event_game_loaded` and on master-toggle flip. Walks `$DAVassalTable`, snapshots `$OriginalPolice` if missing (pre-feature saves), computes the desired police target under current settings, applies via `set_faction_police` only when different from current. Handles three migration cases: pre-feature saves, pre-fix saves (old direct-suzerain routing), toggle-off restoration.
+**Reconcile cue (`EventVassalReconcilePoliceOnLoad`):** fires on `event_game_loaded` and on master-toggle flip. Walks `$DUVassalTable`, snapshots `$OriginalPolice` if missing (pre-feature saves), computes the desired police target under current settings, applies via `set_faction_police` only when different from current. Handles three migration cases: pre-feature saves, pre-fix saves (old direct-suzerain routing), toggle-off restoration.
 
 ### 0.10 isdiplomacyexcluded respected everywhere
 
@@ -235,7 +235,7 @@ A vassal-suzerain relationship is a directional political bond between two AI fa
 ### 2.1 Politics table (vassal-only)
 
 ```
-$DADVT.$DAVassalTable : table[]    keyed by vassal_faction
+$DUDVT.$DUVassalTable : table[]    keyed by vassal_faction
     -> {
          $Suzerain          : faction
          $Since             : player.age
@@ -254,7 +254,7 @@ Directed single-row: stored only at `[vassal] → {suzerain, ...}`. Reverse look
 ### 2.2 Rebellion log
 
 ```
-$DADVT.$DARebellionLog : table[]    keyed by [rebelling_faction]
+$DUDVT.$DURebellionLog : table[]    keyed by [rebelling_faction]
     -> {
          $FormerSuzerain  : faction
          $RebelledAt      : player.age
@@ -268,7 +268,7 @@ Used for cooldown enforcement (rebelled faction cannot be vassalized again until
 ### 2.3 Virtual treasury
 
 ```
-$DADVT.$DAFactionTreasury : table[]    keyed by faction
+$DUDVT.$DUFactionTreasury : table[]    keyed by faction
     -> {
          $Worth          : credits      # cached, recomputed per interval
          $WorthCalcAt    : player.age
@@ -279,15 +279,15 @@ $DADVT.$DAFactionTreasury : table[]    keyed by faction
 `$Worth` is **derived** (sum of ship values + station values, recomputed every 30 min DW interval).
 `$VirtualBalance` is **state** (carries tribute, gifts, etc.; not reset by recompute).
 
-### 2.4 New `$DADVT` settings
+### 2.4 New `$DUDVT` settings
 
 ```
-$DADVT.$DAVassalEnable               : bool   default false
-$DADVT.$DAVassalConquestChance       : 35     # T2 trigger probability
-$DADVT.$DAVassalDefaultTributePct    : 5.0    # default % at vassalage creation
-$DADVT.$DAVassalTreasuryGodTieIn     : bool   default true
-$DADVT.$DAVassalDetailedDebug        : bool   default false
-$DADVT.$DAVassalCooldownMinutes      : 60
+$DUDVT.$DUVassalEnable               : bool   default false
+$DUDVT.$DUVassalConquestChance       : 35     # T2 trigger probability
+$DUDVT.$DUVassalDefaultTributePct    : 5.0    # default % at vassalage creation
+$DUDVT.$DUVassalTreasuryGodTieIn     : bool   default true
+$DUDVT.$DUVassalDetailedDebug        : bool   default false
+$DUDVT.$DUVassalCooldownMinutes      : 60
 ```
 
 ---
@@ -298,14 +298,14 @@ $DADVT.$DAVassalCooldownMinutes      : 60
 
 Add a new event type `Vassalize` to the existing DW weighted roll alongside Besties / BigBoost / SmallBoost / SmallBlow / BigBlow / Nemesis / Nothing.
 
-- New weight slot in `$DADVT.$DADynamicWarEventWeights` (now 8 slots, default weight 4).
+- New weight slot in `$DUDVT.$DUDynamicWarEventWeights` (now 8 slots, default weight 4).
 - Candidate filter at event-time:
   - Both factions adjacent (share ≥1 border sector)
   - Stronger in top-3 by `militarystrength`, weaker in bottom-3
   - Current relation ≥ +0.25
-  - Neither already in `$DAVassalTable`
-  - Neither in `$DAPoliticsExcludedFactions`
-  - Weaker faction not in `$DARebellionLog` cooldown
+  - Neither already in `$DUVassalTable`
+  - Neither in `$DUPoliticsExcludedFactions`
+  - Weaker faction not in `$DURebellionLog` cooldown
 - If no candidate pair: event silently skipped, no log spam.
 
 ### T2. Conquest-driven
@@ -314,8 +314,8 @@ Hook the existing `event_sector_changed_owner` listener (Dynamic News already su
 
 After ownership transfer A←B:
 - Check via `signal_cue_instantly` deferred to next frame (avoids race conditions during X4's ownership update).
-- If B's sector count ∈ [1, 3] AND B not already in `$DAVassalTable` AND B not in cooldown AND A is not a vassal of any of B's enemies:
-- Roll `random.value < $DAVassalConquestChance` (default 35%).
+- If B's sector count ∈ [1, 3] AND B not already in `$DUVassalTable` AND B not in cooldown AND A is not a vassal of any of B's enemies:
+- Roll `random.value < $DUVassalConquestChance` (default 35%).
 - On success: vassalize B under A.
 
 ### T3. Player-initiated via menu
@@ -333,19 +333,19 @@ New menu entry: **DA Dynamic Universe → Politics → Broker Vassalage**.
 ## 4. Mechanical effects
 
 ### E1. Relation lock at ally level
-- Append `[vassal, suzerain]` to `$DADynamicWarLockedRelationFactions` (existing mod infra).
+- Append `[vassal, suzerain]` to `$DUDynamicWarLockedRelationFactions` (existing mod infra).
 - Force relation to +0.5 at vassalage creation.
 - DW pipeline already respects the locked list.
 
 ### E2. Virtual tribute payment
-- Per DW interval, transfer `$TributePct%` of vassal's `$DAFactionTreasury.$Worth` from vassal's `$VirtualBalance` to suzerain's `$VirtualBalance`.
+- Per DW interval, transfer `$TributePct%` of vassal's `$DUFactionTreasury.$Worth` from vassal's `$VirtualBalance` to suzerain's `$VirtualBalance`.
 - Increment `$TributeTotalVirt` on the vassal table row.
 - Clamp transfer if vassal's virtual balance would go below `-Worth * 0.5` (prevents catastrophic debt spirals).
 - **No effect on real X4 economy.** Real impact comes via E2-tie-in below.
 
 ### E2-tie-in. Virtual treasury → God expansion rate
-- The God system (`$DADVT.$DAGodEnable`) already manages faction module expansion.
-- When God evaluates a faction for expansion: read `$DAFactionTreasury.$VirtualBalance`.
+- The God system (`$DUDVT.$DUGodEnable`) already manages faction module expansion.
+- When God evaluates a faction for expansion: read `$DUFactionTreasury.$VirtualBalance`.
 - If `$VirtualBalance > $Worth * 0.5`: God's per-cycle build chance for this faction +25%.
 - If `$VirtualBalance < 0`: God's per-cycle build chance for this faction -25%.
 - This makes virtual tribute matter: suzerain accumulates → suzerain expands faster → suzerain gets richer (bounded by combined-vassal-pressure rebellion).
@@ -419,14 +419,14 @@ if random < total: REBELLION FIRES
 ### 6.2 Rebellion effects (all of)
 - Clear vassal row.
 - Set former-vassal ↔ suzerain relation to **-0.5**.
-- Insert into `$DARebellionLog` with `$CooldownUntil = player.age + $DAVassalCooldownMinutes`.
+- Insert into `$DURebellionLog` with `$CooldownUntil = player.age + $DUVassalCooldownMinutes`.
 - Fire a Dynamic War "Big Blow" event between them (one-shot war intensification).
 - Player notification + news ("X has rebelled against Y. Suzerain too weak / too oppressive / [reason].").
 - Logbook entry.
 
 ### 6.3 Cooldown rules
 - During cooldown, the rebelled faction is filtered out of T1 / T2 / T3 candidate lists.
-- Cooldown rows older than 24 in-game hours get GC'd from `$DARebellionLog`.
+- Cooldown rows older than 24 in-game hours get GC'd from `$DURebellionLog`.
 
 ---
 
@@ -453,7 +453,7 @@ Top-level menu under DA Dynamic Universe.
 - One row per active vassal: vassal name | suzerain name | happiness bar | tribute % | time as vassal | "Manage" button.
 
 **Section B — Recent Rebellions**
-- Read `$DARebellionLog`, show last 5: faction | former suzerain | when | reason.
+- Read `$DURebellionLog`, show last 5: faction | former suzerain | when | reason.
 
 **Section C — Broker Actions**
 - "Broker Vassalage" — T3 above.
@@ -490,8 +490,8 @@ Allocate as needed during implementation.
 
 Extend `VerifyVariablesExist` (existing pattern):
 - New `<include_actions ref="LibraryCheckVassalVariables"/>` block.
-- Initialize all `$DAVassalTable`, `$DARebellionLog`, `$DAFactionTreasury` tables if missing.
-- Initialize all `$DADVT.$DAVassal*` settings to defaults if missing.
+- Initialize all `$DUVassalTable`, `$DURebellionLog`, `$DUFactionTreasury` tables if missing.
+- Initialize all `$DUDVT.$DUVassal*` settings to defaults if missing.
 - Each missing var emits `MOD: DADynamicUniverse -- ERROR -- ...` to debug log per existing convention.
 
 ---
@@ -547,7 +547,7 @@ Each commit must leave the mod loadable. The xpath validator should pass on ever
 | 2026-06-08 | EventVassalCheckExits also handles vassal destroyed | Symmetry with X1 (suzerain destroyed); avoids stale rows with no sectors. |
 | 2026-06-08 | War alignment snapshot excludes faction.player | Until F6 player-as-faction ships, player must not be auto-drifted toward by vassals. |
 | 2026-06-08 | Auto-DW vassalize depends on DW timer | Documented via tooltip on the enable button; T2 and T3 work independently. |
-| 2026-06-08 | T1/T2/T3 all respect $DADynamicWarPermaExcludedFactions + $DADynamicWarDisabledFactions | Single source of truth for "factions the player doesn't want involved." Story-faction concerns are addressed by the player adding the relevant factions to DW's existing Ignored Factions menu — no separate vassal exclusion list. |
+| 2026-06-08 | T1/T2/T3 all respect $DUDynamicWarPermaExcludedFactions + $DUDynamicWarDisabledFactions | Single source of truth for "factions the player doesn't want involved." Story-faction concerns are addressed by the player adding the relevant factions to DW's existing Ignored Factions menu — no separate vassal exclusion list. |
 
 ## 14. Implementation divergences from spec
 
@@ -562,11 +562,11 @@ Each commit must leave the mod loadable. The xpath validator should pass on ever
 
 ## 15. Enable/disable lifecycle
 
-The `$DAVassalEnable` toggle is **pure pause/resume**. It does not clean up state.
+The `$DUVassalEnable` toggle is **pure pause/resume**. It does not clean up state.
 
-- **Disable while vassals exist:** active vassal rows freeze in place. Timers stop firing. The relation lock on each vassal (`set_faction_relation_locked`) **persists** because it is X4-native state, not mod state. Expedition filter continues to apply for as long as a vassal row exists in `$DAVassalTable`.
+- **Disable while vassals exist:** active vassal rows freeze in place. Timers stop firing. The relation lock on each vassal (`set_faction_relation_locked`) **persists** because it is X4-native state, not mod state. Expedition filter continues to apply for as long as a vassal row exists in `$DUVassalTable`.
 - **Re-enable later:** timers resume. Existing vassals start receiving tribute/happiness/rebellion checks again.
-- **Cleanup is explicit:** a separate **Release All Vassals (N)** button in the politics overview menu (visible only when vassals exist, *regardless* of enable state) walks every row in `$DAVassalTable` and runs `Library_VassalRelease` against each. That unlocks the X4 relation lock, fires the release news, and clears the row. Use this before uninstalling the mod to avoid leaving orphaned relation locks in the save.
+- **Cleanup is explicit:** a separate **Release All Vassals (N)** button in the politics overview menu (visible only when vassals exist, *regardless* of enable state) walks every row in `$DUVassalTable` and runs `Library_VassalRelease` against each. That unlocks the X4 relation lock, fires the release news, and clears the row. Use this before uninstalling the mod to avoid leaving orphaned relation locks in the save.
 
 **Convention rationale:** the existing mod features (Dynamic War, Evolution, Fill, …) treat enable toggles as pure switches. Vassal system follows the same convention so the menu behavior is predictable. The dedicated cleanup button captures the destructive intent without conflating it with the timer toggle.
 
@@ -579,10 +579,10 @@ X4 saves can run for thousands of hours; the mod **must not** leave persistent s
 | State | Persists? | Recoverable? |
 |---|---|---|
 | MD cues, libraries, event listeners | No, gone with the script | n/a |
-| `md.DeadAirDynamicUniverse.$DADVT.*` saved variables | Yes, as orphaned blobs in the save | Self-evident, inert |
+| `md.DynamicUniverse.$DUDVT.*` saved variables | Yes, as orphaned blobs in the save | Self-evident, inert |
 | News/logbook entries already written | Yes, as static text | No harm |
 | `set_faction_relation_locked` we applied | **Yes, persist on faction objects indefinitely** | **No** — no code remains to unlock them |
-| `$DAJobsEXPEnemiesTable` modifications | No (same mod) | n/a |
+| `$DUJobsEXPEnemiesTable` modifications | No (same mod) | n/a |
 | Sector listener subscriptions | No (cues gone) | n/a |
 
 ### The only real risk: orphaned relation locks
@@ -593,24 +593,24 @@ The player wouldn't see an obvious break — relations on locked factions just s
 
 ### Mitigations shipped
 
-1. **In-menu warning** (id 2738) appears whenever `$DAVassalTable` is non-empty:
+1. **In-menu warning** (id 2738) appears whenever `$DUVassalTable` is non-empty:
    > "Active vassals leave persistent faction relation locks. Release all before uninstalling this mod."
-2. **Two cleanup buttons** in the politics overview, both visible only when vassals exist, *regardless* of `$DAVassalEnable` state:
-   - **Release All Vassals (N):** unlocks each vassal via `Library_VassalRelease`, clears `$DAVassalTable`. Keeps the system enabled.
-   - **Safe Uninstall:** does Release All, then sets `$DAVassalEnable = false`, clears `$DARebellionLog` and `$DAFactionTreasury`, writes a logbook confirmation. Leaves the mod in a state safe to remove.
+2. **Two cleanup buttons** in the politics overview, both visible only when vassals exist, *regardless* of `$DUVassalEnable` state:
+   - **Release All Vassals (N):** unlocks each vassal via `Library_VassalRelease`, clears `$DUVassalTable`. Keeps the system enabled.
+   - **Safe Uninstall:** does Release All, then sets `$DUVassalEnable = false`, clears `$DURebellionLog` and `$DUFactionTreasury`, writes a logbook confirmation. Leaves the mod in a state safe to remove.
 3. **README guidance** (see project README) describing the proper uninstall procedure.
 
 ### Self-healing ledger
 
-`$DADVT.$DAVassalLockLedger` is a flat list of every faction we have called `set_faction_relation_locked(true)` on. It survives save/load and is the only state that lets us distinguish "our orphan locks" from "another mod's locks."
+`$DUDVT.$DUVassalLockLedger` is a flat list of every faction we have called `set_faction_relation_locked(true)` on. It survives save/load and is the only state that lets us distinguish "our orphan locks" from "another mod's locks."
 
 - `Library_VassalCreate` appends to the ledger when it applies a lock.
 - `Library_VassalRelease` removes from the ledger when it unlocks.
-- `EventVassalLedgerSelfHeal` fires on `event_game_loaded`. For each faction in the ledger, if it is no longer in `$DAVassalTable`, we unlock it and remove it from the ledger.
+- `EventVassalLedgerSelfHeal` fires on `event_game_loaded`. For each faction in the ledger, if it is no longer in `$DUVassalTable`, we unlock it and remove it from the ledger.
 
 This catches:
 - **Reinstall after a forgotten cleanup:** X4 preserves orphaned MD vars across uninstall/reinstall for absent extensions. When the mod returns, the ledger reflects the locks we left behind; the self-heal pass unlocks them since no vassal row backs them up.
-- **Manual save edits that wiped `$DAVassalTable`:** ledger still names the factions we locked; self-heal recovers them.
+- **Manual save edits that wiped `$DUVassalTable`:** ledger still names the factions we locked; self-heal recovers them.
 - **Mod-version skips where vassal state was migrated away:** self-heal cleans up.
 
 ### What we still cannot fix
@@ -621,4 +621,4 @@ The "player uninstalls and never reinstalls" path. Without our code in the save,
 
 - **Auto-unlock unknown locked factions:** we only unlock factions our ledger names. Other mods may have locked the same faction for their own reasons; we don't touch theirs.
 - **Pre-uninstall detection hook:** X4 provides no signal that a mod is being unloaded. The player must trigger cleanup manually.
-- **Periodic auto-cleanup of "stale" vassals during play:** the X1 exit logic and `$DARebellionLog.$CooldownUntil` GC handle in-mod lifecycle; the ledger self-heal only runs on game load.
+- **Periodic auto-cleanup of "stale" vassals during play:** the X1 exit logic and `$DURebellionLog.$CooldownUntil` GC handle in-mod lifecycle; the ledger self-heal only runs on game load.

@@ -49,13 +49,13 @@ $keep = {
     param($line)
     if ($ErrorsOnly) {
         return ($line -match '\[=ERROR=\]|\[=WARNING=\]') -and `
-               ($line -match 'DeadAir|DADynamic|DAVassal|DU-TEST|DU-CHECK|md\.Diplomacy')
+               ($line -match 'DynamicUniverse|DUDynamic|DUVassal|DU-TEST|DU-CHECK|md\.Diplomacy')
     }
     # Drop known unrelated noise
     if ($line -match 'gatedistance\.\{component\.\{0x0L\}\}') { return $false }
     if ($line -match 'OnlineGetUserItems') { return $false }
-    return ($line -match 'MOD:|DU-TEST|DU-CHECK|DADynamic|DAVassal|DeadAirDynamicUniverse|md\.Diplomacy') -or `
-           (($line -match '\[=ERROR=\]|\[=WARNING=\]') -and ($line -match 'DA[A-Z_]|DeadAir|md\.Diplomacy'))
+    return ($line -match 'MOD:|DU-TEST|DU-CHECK|DUDynamic|DUVassal|DynamicUniverse|md\.Diplomacy') -or `
+           (($line -match '\[=ERROR=\]|\[=WARNING=\]') -and ($line -match 'DU[A-Z_]|DynamicUniverse|md\.Diplomacy'))
 }
 
 if ($Live) {

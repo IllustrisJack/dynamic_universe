@@ -62,7 +62,7 @@ If `LibFoo` lives in `A`, this fails with `Property lookup failed: LibFoo`.
 
 **Always fully qualify cross-script library calls:**
 ```xml
-<include_actions ref="md.DeadAirDynamicUniverse.Library_VassalGarrisonSpawn"/>
+<include_actions ref="md.DynamicUniverse.Library_VassalGarrisonSpawn"/>
 ```
 
 Even inside the defining script, the qualified form is safe — and survives being included from other scripts.
