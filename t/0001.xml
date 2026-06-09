@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <language>
-	<page id="33232474" title="DeadAir Script T Files" descr="names used in DeadAir Scripts" voice="no">
+	<page id="33232474" title="Dynamic Universe T Files" descr="names used in Dynamic Universe" voice="no">
 		<!-- DONE: Library entries like job names etc -->
 		<!-- DONE: hover descriptions for dynamic war -->
 		<t id="100">Dynamic Universe {1001,4872}</t>

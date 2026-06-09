@@ -73,15 +73,15 @@ Or check after the fact with `-Tail 500` and `-ErrorsOnly` flags.
 ## Compat guards (9.0)
 
 - **Diplomacy exclusion** — Teladi↔Ministry, Paranid↔HolyOrder etc. are skipped silently by DW + vassal-create + broker menu (vanilla locks).
-- **Protocol Null** — when active and `$DADynamicWarRespectProtocolNull` is true (default), DW random event picker short-circuits to avoid dueling with vanilla's autonomous event generator.
+- **Protocol Null** — when active and `$DUDynamicWarRespectProtocolNull` is true (default), DW random event picker short-circuits to avoid dueling with vanilla's autonomous event generator.
 
 ## Reset / cleanup buttons
 
 | Button | Effect |
 |---|---|
 | Reset Cooldowns/Grace | Zero `$CooldownUntil` and `$GraceUntil` on every rebellion log entry |
-| Clear Treasury Data | Wipe `$DAFactionTreasury` (resets all virtual balances + worth caches) |
-| Clear Rebellion Log | Wipe `$DARebellionLog` |
+| Clear Treasury Data | Wipe `$DUFactionTreasury` (resets all virtual balances + worth caches) |
+| Clear Rebellion Log | Wipe `$DURebellionLog` |
 | Dump State to Logbook | Full structured dump of vassal table, rebellion log, treasury |
 
 ## Known gotchas

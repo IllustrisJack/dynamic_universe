@@ -2,7 +2,7 @@
 
 > **Fork notice (2026-06-08):** This is a continued fork of DeadAir's "Dynamic Universe" / "Deadair Scripts" by IllustrisJack. The original was released under GPL-3 with the author's blessing to continue the work (see his retirement note below). Significant modifications since the original include X4 9.0 compatibility, a new Vassal System (F2), an XPath validator toolchain, and various edge-case hardening. See `git log` for the full change history and `docs/` for design specs.
 >
-> The internal mod ID (`DeadAir_Scripts`) and folder name (`deadair_scripts`) are intentionally **unchanged** so that existing save games and other mods referencing the original ID (notably DeadAir Eco) continue to work without modification.
+> The internal mod ID (`dynamic_universe`) and folder name (`deadair_scripts`) are intentionally **unchanged** so that existing save games and other mods referencing the original ID (notably DeadAir Eco) continue to work without modification.
 
 ## Original author's retirement note (2025-09-23)
 > I have decided to completely retire from X4 Modding. I have added licenses to Eco, Scripts, and DeadTater if any persons are interested in using, modifying, or continuing my works. Thank you for all the support and interest in my work over these years.
