@@ -3884,10 +3884,18 @@
 							<set_value name="$LocVassalWorth" exact="$DUDVT.$DUFactionTreasury.{$LocV}.$Worth"/>
 							<set_value name="$LocPct" exact="$DUDVT.$DUVassalTable.{$LocV}.$TributePct"/>
 							<set_value name="$LocTribute" exact="($LocVassalWorth * $LocPct / 100.0)f"/>
-							<set_value name="$LocVassalBalance" exact="$DUDVT.$DUFactionTreasury.{$LocV}.$VirtualBalance"/>
-							<do_if value="($LocVassalBalance - $LocTribute) lt 0">
-								<set_value name="$LocTribute" exact="[$LocVassalBalance, 0.0].max"/>
-							</do_if>
+							<!-- Tribute always flows. The earlier guard capped tribute at
+							     the vassal's current $VirtualBalance, but
+							     Library_VassalTreasuryRecomputeWorth seeds new entries
+							     at 0 and nothing else increments the vassal's
+							     $VirtualBalance — so the first tribute tick capped at 0,
+							     no tribute ever flowed to the suzerain, suzerain treasury
+							     stayed at 0, and AI auto-gifts could never fire,
+							     leaving vassals to drain to rebellion unchecked.
+							     The virt-balance is a bookkeeping abstraction (no real
+							     wallet to run out of) — letting the vassal's value
+							     go negative is fine. The suzerain accruing tribute
+							     is what matters for the auto-gift loop. -->
 							<do_if value="$LocTribute gt 0">
 								<set_value name="$DUDVT.$DUFactionTreasury.{$LocV}.$VirtualBalance" exact="$LocTribute" operation="subtract"/>
 								<set_value name="$DUDVT.$DUFactionTreasury.{$LocSuz}.$VirtualBalance" exact="$LocTribute" operation="add"/>
@@ -3911,7 +3919,6 @@
 							<remove_value name="$LocVassalWorth"/>
 							<remove_value name="$LocPct"/>
 							<remove_value name="$LocTribute"/>
-							<remove_value name="$LocVassalBalance"/>
 							<remove_value name="$LocFloor"/>
 						</do_for_each>
 					</actions>
