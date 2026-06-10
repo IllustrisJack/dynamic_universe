@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
-<content id="dynamic_universe" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" version="100" date="2026-06-09" save="0" enabled="1">
-	<dependency id="ego_dlc_split" optional="true" name="Split Vendetta"/>
-	<dependency id="ego_dlc_terran" optional="true" name="Cradle of Humanity"/>
-	<dependency id="ego_dlc_pirate" optional="true" name="Tides of Avarice"/>
-	<dependency id="ego_dlc_boron" optional="true" name="Fish People"/>
-	<dependency id="ego_dlc_timelines" optional="true" name="Not Sandbox DLC"/>
-	<dependency id="DeadAir_Eco" optional="true" name="DeadAir Economy Overhaul"/>
-	<dependency id="ws_2042901274" optional="false" name="SirNukes Mod Support APIs" />
-	<dependency version="900"/>
-	<text language="7" 	name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" />
-	<text language="33" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" />
-	<text language="34" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" />
-	<text language="39" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" />
-	<text language="42" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" />
-	<text language="44" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" />
-	<text language="48" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" />
-	<text language="49" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" />
-	<text language="55" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" />
-	<text language="81" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" />
-	<text language="82" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" />
-	<text language="86" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" />
-	<text language="88" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" />
+<content id="ws_3742075036" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)" version="100" date="2026-06-10" save="0" enabled="1" sync="false" lastupdate="1781093203">
+  <dependency id="ego_dlc_split" optional="true" name="Split Vendetta"/>
+  <dependency id="ego_dlc_terran" optional="true" name="Cradle of Humanity"/>
+  <dependency id="ego_dlc_pirate" optional="true" name="Tides of Avarice"/>
+  <dependency id="ego_dlc_boron" optional="true" name="Kingdom End"/>
+  <dependency id="ego_dlc_timelines" optional="true" name="Timelines"/>
+  <dependency id="DeadAir_Eco" optional="true" name="DeadAir Economy Overhaul"/>
+  <dependency id="ws_2042901274" optional="false" name="SirNukes Mod Support APIs"/>
+  <dependency version="900"/>
+  <text language="7" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)"/>
+  <text language="33" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)"/>
+  <text language="34" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)"/>
+  <text language="39" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)"/>
+  <text language="42" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)"/>
+  <text language="44" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)"/>
+  <text language="48" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)"/>
+  <text language="49" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)"/>
+  <text language="55" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)"/>
+  <text language="81" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)"/>
+  <text language="82" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)"/>
+  <text language="86" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)"/>
+  <text language="88" name="Dynamic Universe" description="Continued fork of DeadAir's Dynamic Universe by IllustrisJack. See README for changes." author="IllustrisJack (fork of DeadAir)"/>
 </content>
