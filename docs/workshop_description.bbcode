@@ -21,13 +21,11 @@ Three ways a vassalage forms:
 
 Once formed, a vassalage means: a garrison fleet dispatches from the suzerain's shipyard to guard the vassal's HQ sector, an embassy station is built (real economy construction, not spawn-cheated), tribute flows on each Dynamic War tick (half pays out as real credits when you're the suzerain), happiness ticks every ~5 minutes and drains from high tribute or sectors lost. Below 30 happiness rebellions roll, and a successful rebel defects with the garrison and gets a 60-min cooldown.
 
-[b]Vassal-player relation tracks the suzerain.[/b] The vassal's relations get locked when vassalage starts (otherwise Dynamic War could flip a vassal hostile to its own suzerain) — but the lock is global per faction in vanilla, with no per-pair version. To stop you from being stranded at neutral with a faction your ally is friendly with, vassal-player relation is initialized to suzerain-player at vassalize and re-synced every ~5 min thereafter. Friendly with the suzerain = friendly with its vassals automatically.
-
 [b]Plans are to refine and expand the Galactic Politics module over time, let me know what ideas you have![/b]
 
 [h2]Compatibility[/h2]
 [list]
-[*][b]X4 9.0+[/b] required. Older versions are not supported.
+[*][b]X4 9.0[/b] required. Older versions are not supported.
 [*][b]Required:[/b] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2042901274]SirNukes Mod Support APIs[/url]
 [*][b]Optional:[/b] all Egosoft DLCs (Split, Terran, Pirate, Boron, Timelines), [url=https://www.nexusmods.com/x4foundations/mods/2139]DeadAir Economy Overhaul[/url]
 [*][b]Diff surface is minimal[/b] — additive xpath patches, no replacement of vanilla library roots. Most mods coexist fine.
