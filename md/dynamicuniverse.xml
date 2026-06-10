@@ -117,6 +117,7 @@
 				<set_value name="$DUDVT.$DUVassalExpeditionEnable" exact="true"/>
 				<set_value name="$DUDVT.$DUVassalExpeditionChance" exact="20"/>
 				<set_value name="$DUDVT.$DUVassalExpeditionDurationMinutes" exact="30"/>
+				<set_value name="$DUDVT.$DUVassalExpeditionCooldownMinutes" exact="60"/>
 				<set_value name="$DUDVT.$DUVassalGarrisonSectorCount" exact="3"/>
 				<set_value name="$DUDVT.$DUVassalGarrisonReinforceEnable" exact="true"/>
 				<set_value name="$DUDVT.$DUVassalGarrisonReinforceThresholdPct" exact="50"/>
@@ -3900,7 +3901,13 @@
 								<set_value name="$DUDVT.$DUVassalTable.{$LocV}.$TributeTotalVirt" exact="$LocTribute" operation="add"/>
 								<set_value name="$DUDVT.$DUVassalTable.{$LocV}.$LastTributePaid" exact="player.age"/>
 								<do_if value="$LocSuz == faction.player">
-									<set_value name="$LocPlayerTributeCr" exact="([$LocTribute / 2, 50000000.0].min)i"/>
+									<!-- Player real-Cr tribute cap. Was 50M/tick (= 600M/hour at
+									     5-min ticks) which dwarfs vanilla mid-game income. 5M/tick
+									     (= 60M/hour) is meaningful income but doesn't break X4's
+									     economy curve. Vassal's virt-balance still decrements by
+									     the full $LocTribute (book-keeping); only the real Cr the
+									     player pockets is capped. -->
+									<set_value name="$LocPlayerTributeCr" exact="([$LocTribute / 2, 5000000.0].min)i"/>
 									<set_value name="$LocPlayerTribute" exact="$LocPlayerTributeCr * 1Cr"/>
 									<reward_player money="$LocPlayerTribute"/>
 									<set_value name="$LocPlayerTribText" exact="'%s'.[{33232474, 2779}].[(if $LocV == faction.player then player.name else $LocV.name), '%s Cr'.[$LocPlayerTributeCr]]"/>
@@ -4444,6 +4451,12 @@
 							<set_value name="$DUDVT.$DUFactionTreasury.{$LocFaction}" exact="table[]"/>
 							<set_value name="$DUDVT.$DUFactionTreasury.{$LocFaction}.$VirtualBalance" exact="0"/>
 						</do_if>
+						<!-- Liquidation-basis adjustment. ship.value / station.value
+						     return X4's book value used in trade calcs; real shipyard
+						     sale nets ~50-75% of that. Halve so Worth (and everything
+						     downstream — tribute, gift cost, broker cost) tracks
+						     realistic liquidation, not build-cost inflation. -->
+						<set_value name="$LocWorth" exact="(($LocWorth)f * 0.5f)i"/>
 						<set_value name="$DUDVT.$DUFactionTreasury.{$LocFaction}.$Worth" exact="$LocWorth"/>
 						<set_value name="$DUDVT.$DUFactionTreasury.{$LocFaction}.$WorthCalcAt" exact="player.age"/>
 						<do_if value="$DUDVT.$DUVassalDetailedDebug">
@@ -5080,6 +5093,19 @@
 					<actions>
 						<do_if value="$DUDVT.$DUVassalExpeditionEnable">
 							<do_for_each name="$LocEV" in="$DUDVT.$DUVassalTable.keys.list">
+								<!-- Per-vassal expedition cooldown. Was per-tick only,
+								     which under debug "Run All Ticks" spam (or a fast
+								     succession of natural ticks) stacked many expedition
+								     fleets simultaneously, inflating the vassal's apparent
+								     military and pinning the crisis-drain layer on. Now
+								     skip if last expedition was less than
+								     $DUVassalExpeditionCooldownMinutes ago. -->
+								<set_value name="$LocEVLast" exact="if @$DUDVT.$DUVassalTable.{$LocEV}.$LastExpeditionAt then $DUDVT.$DUVassalTable.{$LocEV}.$LastExpeditionAt else 0s"/>
+								<do_if value="player.age lt $LocEVLast + ($DUDVT.$DUVassalExpeditionCooldownMinutes)min">
+									<remove_value name="$LocEVLast"/>
+									<continue/>
+								</do_if>
+								<remove_value name="$LocEVLast"/>
 								<set_value name="$LocEVRoll" min="0" max="100"/>
 								<do_if value="$LocEVRoll lt $DUDVT.$DUVassalExpeditionChance">
 									<set_value name="$LocEVSuz" exact="$DUDVT.$DUVassalTable.{$LocEV}.$Suzerain"/>
@@ -5107,6 +5133,7 @@
 												<do_if value="not @$DUDVT.$DUVassalTable.{$LocEV}.$Expeditions">
 													<set_value name="$DUDVT.$DUVassalTable.{$LocEV}.$Expeditions" exact="[]"/>
 												</do_if>
+												<set_value name="$DUDVT.$DUVassalTable.{$LocEV}.$LastExpeditionAt" exact="player.age"/>
 												<append_to_list name="$DUDVT.$DUVassalTable.{$LocEV}.$Expeditions" exact="[$LocSpawnedShips, $LocEVTargetSector, player.age + ($DUDVT.$DUVassalExpeditionDurationMinutes)min]"/>
 												<set_value name="$LocEVText" exact="'%s'.[{33232474, 2788}].[if $LocEV == faction.player then player.name else $LocEV.name, if $LocEVTargetFaction == faction.player then player.name else $LocEVTargetFaction.name, $LocEVTargetSector.knownname]"/>
 												<write_to_logbook category="news" title="{33232474, 2700}" faction="$LocEV" text="$LocEVText"/>
@@ -5848,6 +5875,10 @@
 						</do_if>
 						<do_if value="(not $DUDVT.$DUVassalExpeditionDurationMinutes?) or (not ($DUDVT.$DUVassalExpeditionDurationMinutes ge 0))">
 							<set_value name="$DUDVT.$DUVassalExpeditionDurationMinutes" exact="30"/>
+							<set_value name="$MissingVarCount" exact="1" operation="add"/>
+						</do_if>
+						<do_if value="(not $DUDVT.$DUVassalExpeditionCooldownMinutes?) or (not ($DUDVT.$DUVassalExpeditionCooldownMinutes ge 0))">
+							<set_value name="$DUDVT.$DUVassalExpeditionCooldownMinutes" exact="60"/>
 							<set_value name="$MissingVarCount" exact="1" operation="add"/>
 						</do_if>
 						<do_if value="(not $DUDVT.$DUVassalGarrisonSectorCount?) or (not ($DUDVT.$DUVassalGarrisonSectorCount ge 1))">
