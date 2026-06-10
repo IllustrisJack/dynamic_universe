@@ -5316,7 +5316,7 @@
 											<set_value name="$LocHEText" exact="'Shared heritage between %s and %s strengthens the bond (+%s).'.[$LocHEV.name, $LocHESuz.name, $LocHEDelta]"/>
 										</do_if>
 										<do_if value="$LocHECode == 'strong_protector'">
-											<set_value name="$LocHEText" exact="'%s feels secure under %s\\'s protection (+%s).'.[$LocHEV.name, $LocHESuz.name, $LocHEDelta]"/>
+											<set_value name="$LocHEText" exact="'%s feels secure under the protection of %s (+%s).'.[$LocHEV.name, $LocHESuz.name, $LocHEDelta]"/>
 										</do_if>
 										<do_if value="$LocHECode == 'stable_realm'">
 											<set_value name="$LocHEText" exact="'%s enjoys a period of stability (+%s).'.[$LocHEV.name, $LocHEDelta]"/>
@@ -5334,7 +5334,7 @@
 											<set_value name="$LocHEText" exact="'Cultural friction between %s and %s causes unrest (%s).'.[$LocHEV.name, $LocHESuz.name, $LocHEDelta]"/>
 										</do_if>
 										<do_if value="$LocHECode == 'wartime_strain'">
-											<set_value name="$LocHEText" exact="'%s strains under the weight of %s\\'s ongoing wars (%s).'.[$LocHEV.name, $LocHESuz.name, $LocHEDelta]"/>
+											<set_value name="$LocHEText" exact="'%s strains under the weight of the ongoing wars of %s (%s).'.[$LocHEV.name, $LocHESuz.name, $LocHEDelta]"/>
 										</do_if>
 
 										<do_if value="$DUDVT.$DUVassalNewsEnable">
