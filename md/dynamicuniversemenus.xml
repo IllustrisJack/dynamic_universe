@@ -7188,7 +7188,12 @@
 										<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=8, $colSpan=5, $halign='center', $text='%s'.[{33232474,2893}].[($LocSuzMilSafe)i, ($LocCandMil)i], $color=$DUMVT.$TextRed, $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
 									</do_elseif>
 									<do_elseif value="player.money lt $LocBrokerCost">
-										<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=8, $colSpan=5, $halign='center', $text='%s (%s)'.[{1015,28}, '%s Cr'.[($LocBrokerCost)i]], $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
+										<!-- Insufficient funds. Show red cost text in place of the
+										     button — same approach DW Increase/Decrease menus use
+										     (set $LocText=null, omit button entirely). The cost is
+										     still visible so the player knows what they need; the
+										     button is absent so a stale click is impossible. -->
+										<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=8, $colSpan=5, $halign='center', $text='%s (%s)'.[{1015,28}, '%s Cr'.[($LocBrokerCost)i]], $color=$DUMVT.$TextRed, $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
 									</do_elseif>
 									<do_else>
 										<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
