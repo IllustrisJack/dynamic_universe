@@ -45,7 +45,7 @@ param(
     [string]$WorkshopTool
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"  # WorkshopTool writes harmless banners to stderr on every run; Stop would treat them as fatal
 
 # Source folder on disk (legacy from the DeadAir Scripts upstream).
 $ModName = "deadair_scripts"
@@ -57,12 +57,18 @@ $ModName = "deadair_scripts"
 $PublishedFolderName = "dynamic_universe"
 
 function Get-SteamLibraries {
-    $roots = @(
+    $roots = @()
+    try {
+        $reg = (Get-ItemProperty -Path "HKCU:\Software\Valve\Steam" -Name SteamPath -ErrorAction Stop).SteamPath
+        if ($reg) { $roots += $reg }
+    } catch {}
+    $roots += @(
         "$env:ProgramFiles(x86)\Steam",
         "$env:ProgramFiles\Steam"
     )
     $libs = @()
     foreach ($s in $roots) {
+        if (-not $s) { continue }
         $vdf = Join-Path $s "steamapps\libraryfolders.vdf"
         if (Test-Path $vdf) {
             foreach ($m in (Select-String -Path $vdf -Pattern '"path"\s+"([^"]+)"' -AllMatches).Matches) {
