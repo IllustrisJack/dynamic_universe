@@ -289,7 +289,7 @@
 							<debug_text text="'MOD: DADynamicWar -- Event Chosen: %s'.[$DUDynamicWarLocWarEvent]" context="false" filter="scripts"/>
 						</do_if>
 						<do_if value="$DUDynamicWarLocWarEvent == 'Vassalize'">
-							<include_actions ref="LibraryVassalizeFindAndExecute"/>
+							<include_actions ref="md.DynamicUniverse.LibraryVassalizeFindAndExecute"/>
 						</do_if>
 						<!-- If nothing then we don't need to do any more processing -->
 						<do_elseif value="$DUDynamicWarLocWarEvent != 'Nothing'">
@@ -1330,7 +1330,7 @@
 						<!-- Output Logbook Entry -->
 						<write_to_logbook category="news" title="$LocLogReport.{1}" faction="$LocLogReport.{2}" text="$LocLogReport.{3}" highlighted="true"/>
 						<do_if value="$DUDVT.$DUDynamicNewsEnable and $DUDVT.$DUDynamicNewsEnableNewsStorage">
-							<signal_cue_instantly cue="EventDynamicNewsTracking" param="[$LocNotification.{2},'%s ; %s'.[$LocNotification.{3},$LocNotification.{4}]]"/>
+							<signal_cue_instantly cue="md.DynamicUniverse.EventDynamicNewsTracking" param="[$LocNotification.{2},'%s ; %s'.[$LocNotification.{3},$LocNotification.{4}]]"/>
 						</do_if>
 						<remove_value name="$LocEvent"/>
 						<remove_value name="$LocFacOne"/>
@@ -2074,7 +2074,7 @@
 								END NOTIFICATION
 							-->
 									<do_if value="$DUDVT.$DUDynamicNewsEnableNewsStorage">
-										<signal_cue_instantly cue="EventDynamicNewsTracking" param="[$LocSector.knownname,$LocMessage]"/>
+										<signal_cue_instantly cue="md.DynamicUniverse.EventDynamicNewsTracking" param="[$LocSector.knownname,$LocMessage]"/>
 									</do_if>
 									<do_if value="$DUDVT.$DUDynamicNewsEnableNotifications">
 										<show_notification priority="1" text="'%s: %s\n%s'.[{33232474,102},$LocSector.knownname,$LocMessage]"/>
@@ -2665,7 +2665,7 @@
 								<write_to_logbook category="news" title="$LocLogbookReport.{1}" faction="$LocLogbookReport.{2}" text="$LocLogbookReport.{3}"/>
 							</do_if>
 							<do_if value="($DUDVT.$DUDynamicNewsEnableNewsStorage) and ($LocNotificationReport.{1}?) and ($LocNotificationReport.{2}?) and ($LocNotificationReport.{3}?)">
-								<signal_cue_instantly cue="EventDynamicNewsTracking" param="[$LocLogbookReport.{2},$LocLogbookReport.{3}]"/>
+								<signal_cue_instantly cue="md.DynamicUniverse.EventDynamicNewsTracking" param="[$LocLogbookReport.{2},$LocLogbookReport.{3}]"/>
 							</do_if>
 						</do_if>
 						<!-- Cleanup -->
@@ -3268,7 +3268,7 @@
 								</do_if>
 								<set_value name="$LocCom" exact="0.0"/>
 								<set_value name="$LocSuzerain" exact="$LocSuz"/>
-								<include_actions ref="Library_VassalGetVassalsOf"/>
+								<include_actions ref="md.DynamicUniverse.Library_VassalGetVassalsOf"/>
 								<set_value name="$LocCombinedMil" exact="0"/>
 								<do_for_each name="$LocOtherV" in="$LocVassalList">
 									<find_ship_by_true_owner name="$LocOShips" multiple="true" faction="$LocOtherV" space="player.galaxy" masstraffic="false" class="[class.ship_xl, class.ship_l, class.ship_m, class.ship_s]" primarypurpose="purpose.fight"/>
@@ -3335,7 +3335,7 @@
 									<show_notification priority="2" text="'%s: %s'.[{33232474, 2700}, $LocCoalText]"/>
 									<write_to_logbook category="news" title="{33232474, 2700}" faction="$LocCoalSuz" text="$LocCoalText" highlighted="true"/>
 									<do_if value="$DUDVT.$DUVassalNewsEnable">
-										<signal_cue_instantly cue="EventDynamicNewsTracking" param="[$LocCoalSuzLabel, $LocCoalText]"/>
+										<signal_cue_instantly cue="md.DynamicUniverse.EventDynamicNewsTracking" param="[$LocCoalSuzLabel, $LocCoalText]"/>
 									</do_if>
 									<debug_text text="'MOD: DAVassal -- COALITION rebellion against %s: %s'.[$LocCoalSuz, $LocCoalNames]" context="true" filter="general"/>
 									<remove_value name="$LocCoalSuzLabel"/>
@@ -3401,7 +3401,7 @@
 								<show_notification priority="2" text="'%s: %s'.[{33232474, 2700}, $LocRebText]"/>
 								<write_to_logbook category="news" title="{33232474, 2700}" faction="$LocR" text="$LocRebText" highlighted="true"/>
 								<do_if value="$DUDVT.$DUVassalNewsEnable">
-									<signal_cue_instantly cue="EventDynamicNewsTracking" param="[(if $LocR == faction.player then player.name else $LocR.name), $LocRebText]"/>
+									<signal_cue_instantly cue="md.DynamicUniverse.EventDynamicNewsTracking" param="[(if $LocR == faction.player then player.name else $LocR.name), $LocRebText]"/>
 								</do_if>
 							</do_if>
 							<remove_value name="$LocRebText"/>
@@ -3435,7 +3435,7 @@
 										<set_value name="$LocSpawnSector" exact="$LocRebHome"/>
 										<set_value name="$LocPurposeFaction" exact="$LocSup"/>
 										<set_value name="$LocGarrLabel" exact="'%s Support'.[$LocR.shortname]"/>
-										<include_actions ref="Library_VassalGarrisonSpawn"/>
+										<include_actions ref="md.DynamicUniverse.Library_VassalGarrisonSpawn"/>
 										<remove_value name="$LocGarrLabel"/>
 										<do_if value="$LocSpawnedShips.count gt 0">
 											<append_to_list name="$DUDVT.$DURebellionLog.{$LocR}.$SupportFleets" exact="[$LocSup, $LocSpawnedShips.count]"/>
@@ -3549,7 +3549,7 @@
 							<remove_value name="$LocLost"/>
 							<remove_value name="$LocSectors"/>
 							<set_value name="$LocSuzerain" exact="$LocSuz"/>
-							<include_actions ref="Library_VassalGetVassalsOf"/>
+							<include_actions ref="md.DynamicUniverse.Library_VassalGetVassalsOf"/>
 							<set_value name="$LocCombinedMil" exact="0"/>
 							<do_for_each name="$LocOtherV" in="$LocVassalList">
 								<find_ship_by_true_owner name="$LocVShips" multiple="true" faction="$LocOtherV" space="player.galaxy" masstraffic="false" class="[class.ship_xl, class.ship_l, class.ship_m, class.ship_s]" primarypurpose="purpose.fight"/>
@@ -3692,7 +3692,7 @@
 												<show_notification priority="2" text="'%s: %s'.[{33232474, 2700}, $LocFGText]"/>
 												<write_to_logbook category="news" title="{33232474, 2700}" faction="$LocV" text="$LocFGText"/>
 												<do_if value="$DUDVT.$DUVassalNewsEnable">
-													<signal_cue_instantly cue="EventDynamicNewsTracking" param="[(if $LocV == faction.player then player.name else $LocV.name), $LocFGText]"/>
+													<signal_cue_instantly cue="md.DynamicUniverse.EventDynamicNewsTracking" param="[(if $LocV == faction.player then player.name else $LocV.name), $LocFGText]"/>
 												</do_if>
 												<remove_value name="$LocFGText"/>
 											</do_if>
@@ -3733,7 +3733,7 @@
 							<set_value name="$LocOldHappiness" exact="$DUDVT.$DUVassalTable.{$LocV}.$Happiness"/>
 							<set_value name="$LocVassal" exact="$LocV"/>
 							<set_value name="$LocHappiness" exact="$LocOldHappiness + $LocDelta"/>
-							<include_actions ref="Library_VassalSetHappiness"/>
+							<include_actions ref="md.DynamicUniverse.Library_VassalSetHappiness"/>
 							<set_value name="$DUDVT.$DUVassalTable.{$LocV}.$LastHappinessCalc" exact="player.age"/>
 							<set_value name="$LocNewHappiness" exact="$DUDVT.$DUVassalTable.{$LocV}.$Happiness"/>
 							<!-- Threshold logbook notifications: restless / critical / recovered -->
@@ -3878,9 +3878,9 @@
 						<do_for_each name="$LocV" in="$DUDVT.$DUVassalTable.keys.list">
 							<set_value name="$LocSuz" exact="$DUDVT.$DUVassalTable.{$LocV}.$Suzerain"/>
 							<set_value name="$LocFaction" exact="$LocV"/>
-							<include_actions ref="Library_VassalTreasuryRecomputeWorth"/>
+							<include_actions ref="md.DynamicUniverse.Library_VassalTreasuryRecomputeWorth"/>
 							<set_value name="$LocFaction" exact="$LocSuz"/>
-							<include_actions ref="Library_VassalTreasuryRecomputeWorth"/>
+							<include_actions ref="md.DynamicUniverse.Library_VassalTreasuryRecomputeWorth"/>
 							<set_value name="$LocVassalWorth" exact="$DUDVT.$DUFactionTreasury.{$LocV}.$Worth"/>
 							<set_value name="$LocPct" exact="$DUDVT.$DUVassalTable.{$LocV}.$TributePct"/>
 							<set_value name="$LocTribute" exact="($LocVassalWorth * $LocPct / 100.0)f"/>
@@ -3976,7 +3976,7 @@
 								<set_value name="$LocVassal" exact="$LocOldOwner"/>
 								<set_value name="$LocSuzerain" exact="$LocNewOwner"/>
 								<set_value name="$LocSourceTrigger" exact="if $LocHQLost then 'ConquestHQ' else 'Conquest'"/>
-								<include_actions ref="Library_VassalCreate"/>
+								<include_actions ref="md.DynamicUniverse.Library_VassalCreate"/>
 								<remove_value name="$LocVassal"/>
 								<remove_value name="$LocSuzerain"/>
 								<remove_value name="$LocSourceTrigger"/>
@@ -4019,7 +4019,7 @@
 								<set_value name="$LocLevyOldHapp" exact="$DUDVT.$DUVassalTable.{$LocLevyV}.$Happiness"/>
 								<set_value name="$LocVassal" exact="$LocLevyV"/>
 								<set_value name="$LocHappiness" exact="$LocLevyOldHapp - $DUDVT.$DUVassalLevyHappinessCost"/>
-								<include_actions ref="Library_VassalSetHappiness"/>
+								<include_actions ref="md.DynamicUniverse.Library_VassalSetHappiness"/>
 								<remove_value name="$LocLevyOldHapp"/>
 								<remove_value name="$LocVassal"/>
 								<remove_value name="$LocHappiness"/>
@@ -4110,7 +4110,7 @@
 														<set_value name="$LocVassal" exact="$LocWEA"/>
 														<set_value name="$LocSuzerain" exact="$LocWESavior"/>
 														<set_value name="$LocSourceTrigger" exact="'WarExhaustion'"/>
-														<include_actions ref="Library_VassalCreate"/>
+														<include_actions ref="md.DynamicUniverse.Library_VassalCreate"/>
 														<remove_value name="$LocVassal"/>
 														<remove_value name="$LocSuzerain"/>
 														<remove_value name="$LocSourceTrigger"/>
@@ -4326,7 +4326,7 @@
 						<!-- Succession pass: for each dead suzerain, find their vassals. If succession is on and 2+ alive vassals, strongest inherits; siblings roll refuse chance and either join or break free. With <2 vassals, all simply free. -->
 						<do_for_each name="$LocSuccSuz" in="$LocSuccDeadSuzes">
 							<set_value name="$LocSuzerain" exact="$LocSuccSuz"/>
-							<include_actions ref="Library_VassalGetVassalsOf"/>
+							<include_actions ref="md.DynamicUniverse.Library_VassalGetVassalsOf"/>
 							<set_value name="$LocSuccPool" exact="[]"/>
 							<do_for_each name="$LocSuccCand" in="$LocVassalList">
 								<find_sector name="$LocSuccCandSec" multiple="true" owner="$LocSuccCand" space="player.galaxy"/>
@@ -4376,7 +4376,7 @@
 												<show_notification priority="2" text="'%s: %s'.[{33232474, 2700}, $LocSuccNewsText]"/>
 												<write_to_logbook category="news" title="{33232474, 2700}" faction="$LocSuccSib" text="$LocSuccNewsText" highlighted="true"/>
 												<do_if value="$DUDVT.$DUVassalNewsEnable">
-													<signal_cue_instantly cue="EventDynamicNewsTracking" param="[(if $LocSuccSib == faction.player then player.name else $LocSuccSib.name), $LocSuccNewsText]"/>
+													<signal_cue_instantly cue="md.DynamicUniverse.EventDynamicNewsTracking" param="[(if $LocSuccSib == faction.player then player.name else $LocSuccSib.name), $LocSuccNewsText]"/>
 												</do_if>
 												<remove_value name="$LocSuccNewsText"/>
 											</do_else>
@@ -4402,7 +4402,7 @@
 						<do_for_each name="$LocV" in="$LocFreeMap.keys.list">
 							<set_value name="$LocVassal" exact="$LocV"/>
 							<set_value name="$LocReleaseReason" exact="$LocFreeMap.{$LocV}"/>
-							<include_actions ref="Library_VassalRelease"/>
+							<include_actions ref="md.DynamicUniverse.Library_VassalRelease"/>
 							<remove_value name="$LocVassal"/>
 							<remove_value name="$LocReleaseReason"/>
 						</do_for_each>
@@ -4539,7 +4539,7 @@
 							<show_notification priority="1" text="'%s: %s'.[{33232474, 2700}, $LocRelText]"/>
 							<write_to_logbook category="news" title="{33232474, 2700}" faction="$LocVassal" text="$LocRelText"/>
 							<do_if value="$DUDVT.$DUVassalNewsEnable">
-								<signal_cue_instantly cue="EventDynamicNewsTracking" param="[(if $LocVassal == faction.player then player.name else $LocVassal.name), $LocRelText]"/>
+								<signal_cue_instantly cue="md.DynamicUniverse.EventDynamicNewsTracking" param="[(if $LocVassal == faction.player then player.name else $LocVassal.name), $LocRelText]"/>
 							</do_if>
 							<remove_value name="$LocRelText"/>
 							<remove_value name="$DUDVT.$DUVassalTable.{$LocVassal}"/>
@@ -4685,7 +4685,7 @@
 						<show_notification priority="1" text="'%s: %s'.[{33232474, 2700}, $LocVCText]"/>
 						<write_to_logbook category="news" title="{33232474, 2700}" faction="$LocVassal" text="$LocVCText"/>
 						<do_if value="$DUDVT.$DUVassalNewsEnable">
-							<signal_cue_instantly cue="EventDynamicNewsTracking" param="[(if $LocVassal == faction.player then player.name else $LocVassal.name), $LocVCText]"/>
+							<signal_cue_instantly cue="md.DynamicUniverse.EventDynamicNewsTracking" param="[(if $LocVassal == faction.player then player.name else $LocVassal.name), $LocVCText]"/>
 						</do_if>
 						<remove_value name="$LocVCText"/>
 						<set_value name="$DUDVT.$DUVassalTable.{$LocVassal}.$GarrisonShips" exact="[]"/>
@@ -4794,7 +4794,7 @@
 									<set_value name="$LocSpawnSector" exact="$LocCoopSector"/>
 									<set_value name="$LocPurposeFaction" exact="$LocSuzerain"/>
 									<set_value name="$LocGarrLabel" exact="'%s Embassy Defense'.[$LocSuzerain.shortname]"/>
-									<include_actions ref="Library_VassalGarrisonSpawn"/>
+									<include_actions ref="md.DynamicUniverse.Library_VassalGarrisonSpawn"/>
 									<remove_value name="$LocGarrLabel"/>
 									<remove_value name="$LocPurposeFaction"/>
 									<remove_value name="$LocSpawnSector"/>
@@ -4838,7 +4838,13 @@
 						     library body so we can early-exit cleanly without <return/>
 						     (invalid in include_actions libs per gotchas doc). -->
 						<set_value name="$LocGarrSpawnSkip" exact="false"/>
-						<do_if value="not @$LocFleetOwner or not $LocFleetOwner.exists or not @$LocPurposeFaction or not $LocPurposeFaction.exists">
+						<!-- Faction values in MD are enum-like references; they don't
+						     carry a .exists property the way game-world objects do.
+						     So just null-check via @ safe-read. The original concern
+						     (a corrupted null entry in $DUVassalTable) shows up as
+						     $LocFleetOwner being undefined or literally null, which
+						     this check catches. -->
+						<do_if value="not @$LocFleetOwner or not @$LocPurposeFaction">
 							<debug_text text="'MOD: DAVassal -- garrison spawn aborted: invalid fleet owner (%s) or purpose faction (%s).'.[@$LocFleetOwner, @$LocPurposeFaction]" context="true" filter="error"/>
 							<set_value name="$LocGarrSpawnSkip" exact="true"/>
 						</do_if>
@@ -5026,7 +5032,7 @@
 					</conditions>
 					<actions>
 						<debug_text text="'MOD: DAVassal -- Debug: force vassalize requested.'" context="true" filter="general"/>
-						<include_actions ref="LibraryVassalizeFindAndExecute"/>
+						<include_actions ref="md.DynamicUniverse.LibraryVassalizeFindAndExecute"/>
 					</actions>
 				</cue>
 				<cue name="EventVassalRunAllTicks" instantiate="true">
@@ -5074,7 +5080,7 @@
 											<set_value name="$LocSpawnSector" exact="$LocEVTargetSector"/>
 											<set_value name="$LocPurposeFaction" exact="$LocEV"/>
 											<set_value name="$LocGarrLabel" exact="'%s Expedition'.[$LocEV.shortname]"/>
-											<include_actions ref="Library_VassalGarrisonSpawn"/>
+											<include_actions ref="md.DynamicUniverse.Library_VassalGarrisonSpawn"/>
 											<do_if value="$LocSpawnedShips.count gt 0">
 												<do_if value="not @$DUDVT.$DUVassalTable.{$LocEV}.$Expeditions">
 													<set_value name="$DUDVT.$DUVassalTable.{$LocEV}.$Expeditions" exact="[]"/>
@@ -5192,7 +5198,7 @@
 						<set_value name="$LocSpawnSector" exact="event.param.{1}"/>
 						<set_value name="$LocPurposeFaction" exact="event.param.{2}"/>
 						<set_value name="$LocGarrLabel" exact="'Debug Test'"/>
-						<include_actions ref="Library_VassalGarrisonSpawn"/>
+						<include_actions ref="md.DynamicUniverse.Library_VassalGarrisonSpawn"/>
 						<show_notification priority="2" text="'Debug: spawned %s player-owned ships in %s.'.[$LocSpawnedShips.count, $LocSpawnSector.knownname]"/>
 						<write_to_logbook category="news" title="{33232474, 2700}" text="'[Debug] Spawned %s test garrison ships (player-owned, race %s) in %s.'.[$LocSpawnedShips.count, $LocPurposeFaction.primaryrace, $LocSpawnSector.knownname]"/>
 						<debug_text text="'MOD: DAVassal -- Debug spawn: %s player-owned ships (race %s) in %s'.[$LocSpawnedShips.count, $LocPurposeFaction.primaryrace, $LocSpawnSector]" context="true" filter="general"/>
@@ -5312,7 +5318,7 @@
 							<set_value name="$LocVassal" exact="$LocPickCands.{1}"/>
 							<set_value name="$LocSuzerain" exact="faction.player"/>
 							<set_value name="$LocSourceTrigger" exact="'DebugPlayerSuzerain'"/>
-							<include_actions ref="Library_VassalCreate"/>
+							<include_actions ref="md.DynamicUniverse.Library_VassalCreate"/>
 							<show_notification priority="2" text="'Debug: %s is now your vassal.'.[(if $LocVassal == faction.player then player.name else $LocVassal.name)]"/>
 							<remove_value name="$LocVassal"/>
 							<remove_value name="$LocSuzerain"/>
@@ -5361,9 +5367,9 @@
 						<do_if value="$DUDVT.$DUVassalTable.{$LocSingleV}?">
 							<set_value name="$LocSuz" exact="$DUDVT.$DUVassalTable.{$LocSingleV}.$Suzerain"/>
 							<set_value name="$LocFaction" exact="$LocSingleV"/>
-							<include_actions ref="Library_VassalTreasuryRecomputeWorth"/>
+							<include_actions ref="md.DynamicUniverse.Library_VassalTreasuryRecomputeWorth"/>
 							<set_value name="$LocFaction" exact="$LocSuz"/>
-							<include_actions ref="Library_VassalTreasuryRecomputeWorth"/>
+							<include_actions ref="md.DynamicUniverse.Library_VassalTreasuryRecomputeWorth"/>
 							<set_value name="$LocVassalWorth" exact="$DUDVT.$DUFactionTreasury.{$LocSingleV}.$Worth"/>
 							<set_value name="$LocPct" exact="$DUDVT.$DUVassalTable.{$LocSingleV}.$TributePct"/>
 							<set_value name="$LocTribute" exact="($LocVassalWorth * $LocPct / 100.0)f"/>
@@ -5538,7 +5544,7 @@
 							<set_value name="$LocSuzerain" exact="$LocChosenPair.{1}"/>
 							<set_value name="$LocVassal" exact="$LocChosenPair.{2}"/>
 							<set_value name="$LocSourceTrigger" exact="'DW'"/>
-							<include_actions ref="Library_VassalCreate"/>
+							<include_actions ref="md.DynamicUniverse.Library_VassalCreate"/>
 							<remove_value name="$LocChosenPair"/>
 							<remove_value name="$LocSuzerain"/>
 							<remove_value name="$LocVassal"/>

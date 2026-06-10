@@ -7626,6 +7626,26 @@
 						</do_if>
 						<set_value name="$LocCostMoney" exact="$LocCost * 1Cr"/>
 						<debug_text text="'MOD: DAVassal -- broker cost: raw=%s clamped=%s'.[$LocRawCost, $LocCost]" context="true" filter="general"/>
+						<!-- Defense in depth: refuse the broker action if the player
+						     can't actually afford it. The menu button should be
+						     greyed out via the do_elseif in the display block
+						     (line 7190), but if the player.money state shifts
+						     between menu-render and click, the button can still
+						     be triggered. Aborting here avoids charging the
+						     player and creating a vassalage they didn't fully
+						     pay for. -->
+						<do_if value="player.money lt $LocCostMoney">
+							<debug_text text="'MOD: DAVassal -- broker refused: player has %s Cr but cost is %s Cr.'.[(player.money / 1Cr)i, $LocCost]" context="true" filter="general"/>
+							<show_notification priority="1" text="{1015, 28}"/>
+							<remove_value name="$LocSuzerain"/>
+							<remove_value name="$LocVassal"/>
+							<remove_value name="$LocRawCost"/>
+							<remove_value name="$LocCost"/>
+							<remove_value name="$LocCostMoney"/>
+							<signal_cue_instantly cue="md.Simple_Menu_API.Refresh_Menu"/>
+							<set_value name="$LocBrokerAbort" exact="true"/>
+						</do_if>
+						<do_if value="not $LocBrokerAbort?">
 						<reward_player money="-$LocCostMoney"/>
 						<remove_value name="$LocRawCost"/>
 						<remove_value name="$LocCostMoney"/>
@@ -7636,6 +7656,8 @@
 						<remove_value name="$LocCost"/>
 						<remove_value name="$LocSourceTrigger"/>
 						<signal_cue_instantly cue="md.Simple_Menu_API.Refresh_Menu"/>
+						</do_if>
+						<remove_value name="$LocBrokerAbort"/>
 					</actions>
 				</cue>
 				<cue name="ExecuteOption_PoliticsSummonLevy" instantiate="true">
