@@ -18,6 +18,19 @@ Local mirror of [Egosoft's Workshop guide](https://steamcommunity.com/sharedfile
 - Cannot start with `ego_` (reserved).
 - The folder name shipped to subscribers defaults to your local folder name (override with `-foldername <name>`).
 
+### ⚠ Foldername gotcha
+
+Every `WorkshopTool publishx4` and `WorkshopTool update` call **must** be invoked with the correct `-foldername <name>` flag, OR the local source folder must already match the desired subscriber folder name. If you skip the flag, WorkshopTool reads the local source folder name and writes that as the subscriber-side folder name on the Workshop item — silently, with no warning.
+
+This bit DU mid-stream: the local source is `extensions/deadair_scripts/` (legacy DeadAir name), but the subscriber-side install must be `extensions/dynamic_universe/` to match `content.xml id`. When a `WorkshopTool update` call was made directly (bypassing `publish.ps1`) without `-foldername dynamic_universe`, the Workshop's recorded subscriber folder flipped to `deadair_scripts`. The follow-up release had to re-set it.
+
+Two ways to stay safe:
+
+1. **Always use `publish.ps1`** — it has `-foldername dynamic_universe` baked in.
+2. **If you call `WorkshopTool` directly**, pass `-foldername dynamic_universe` explicitly. Or rename your local `extensions/deadair_scripts/` → `extensions/dynamic_universe/` and use the dev-link helper (`scripts/dev-link.ps1`) to manage the junction.
+
+For mods where `content.xml id` already matches the local folder name (e.g. blockades — local folder is `blockades`, id is `blockades`), no `-foldername` override is needed and direct WorkshopTool calls are safe.
+
 ## content.xml requirements
 
 Required attributes on `<content>`:
