@@ -4,9 +4,13 @@
 
 ---
 
-## What it does, in one paragraph
+## Modules
 
-X4's late game tends to collapse into a Xenon-and-Argon two-faction wasteland because losing factions get eaten without diplomatic alternatives. Dynamic Universe layers three reactive systems on top of vanilla diplomacy to keep the galaxy interesting: **Dynamic War** periodically shifts AI-faction relations based on military strength and shared enemies, **Dynamic News** turns those changes (plus station construction/destruction events) into a logbook feed, and **Galactic Politics** (new in this fork) introduces vassalage — losing factions become tributaries instead of dying, with garrison fleets, happiness mechanics, rebellions, coups, and a player broker menu. Everything is opt-in via the in-game mod menu and ships disabled by default.
+- **Dynamic War** — periodic AI-to-AI relation shifts driven by military strength, shared enemies, and primary race. Six event types from soft boosts to instant max-relation flips.
+- **Dynamic News** — logbook + notification feed for galaxy-scale events (sector ownership changes, major station destroyed, economic stations expanded, all Galactic Politics events).
+- **Galactic Politics** *(new in this fork)* — vassalage layer on top of vanilla diplomacy. Three vassalize paths (Dynamic War roll, conquest, player broker), tribute, happiness, garrison fleets, embassies, rebellions, coups, succession, war exhaustion.
+
+Each module has its own toggle in the in-game mod menu.
 
 ---
 

@@ -141,6 +141,44 @@ When in doubt, find a structurally-similar vanilla XL military patrol job (e.g. 
 
 **Test loop:** edit jobs.xml → fully close X4 → start X4 → check `get_suitable_job(tags=[your_tag])` count via debug_text. Neither `/refreshmd` (which only reloads `md/*.xml`) nor "Reload Save" reliably re-parses `libraries/*.xml`; only a full X4 process restart is guaranteed.
 
+## `move.generic` ignores unknown params silently
+
+The engine accepts unknown params on `<run_script>` and logs a `Script warning:` line, but the script runs anyway with those params dropped. That's not a parser error — the order keeps working with default behavior, which can look like "the fix didn't help" rather than "the param doesn't exist."
+
+**Real names on `move.generic`** (X4 9.0 — check `aiscripts/move.generic.xml` for the authoritative list):
+
+- `destination`, `position`, `rotation`, `lookat`
+- `noboost`, `disablecollisionavoidance`, `abortpath`, `forcesteering`
+- `endintargetzone`, `endintargetsector`
+- `recallsubordinates`, `strictblacklist`
+- **`precise`** — skips safepos + position randomization, so the script aims for the EXACT supplied position. This is what most "force exact arrival" code actually wants.
+- `playerprecise` — same but keeps safepos
+- `uselocalhighways`, `traveltoend`, `pursuetargets`, `pursuedistance`, `escort`, `changecommandaction`
+- `activepatrol`, `targetclasses`, `radius`, `radiusanchorpos`, `radiusanchorspace`, `enforceradius`
+- `stopondetect`, `allowwreck`, `waitforatgate`, `relativemovement`, `stayatrelativemovement`
+
+**NOT params on `move.generic`** (despite intuition):
+
+- `forceposition` — exists on the `<move_to>` XML primitive, not on the script
+- `forcerotation` — same
+- `finishonapproach` — same
+
+When you want "exact arrival" via `move.generic`: pass `precise="true"` + `position=<exact pos>` + `lookat=<face this>`. Engine logs a warning for any other param it doesn't recognize, so `grep "Script warning:" debuglog.txt` is the first place to check when a positioning call doesn't behave.
+
+## `create_order` — `default` and `immediate` are mutually exclusive
+
+`<create_order id='X' object='$Y' default='false' immediate='true'>` triggers:
+
+```
+create_order: 'default' and 'immediate' cannot be specified together.
+If both are true, 'immediate' will be ignored.
+```
+
+The engine treats **any presence of `default`** (even `="false"`) as flagging the order as a default-style order, then drops `immediate`. Pattern:
+
+- Default order: `<create_order id='X' default='true' object='$Y'>` — omit `immediate`
+- Active order: `<create_order id='X' immediate='true' object='$Y'>` — **omit `default` entirely**, don't pass `default='false'`
+
 ## `keys.list.count` is deprecated
 
 `<table>.keys.list.count` works but logs a warning every parse: prefer `<table>.keys.count`. Mechanical sweep when we get around to it.
