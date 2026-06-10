@@ -98,6 +98,8 @@ Once a vassalage forms, a garrison fleet (1 destroyer + 2 frigates + 4 fighters,
 
 Happiness ticks every ~5 min. Drains from high tribute, cultural mismatch, the vassal being stronger than the suzerain, sectors lost, the suzerain being at war. Lifts from shared enemies, a strong protective suzerain, sectors gained. AI suzerains auto-gift to stabilize unhappy vassals at the cost of their virtual treasury. Below 30 happiness, rebellion rolls fire — successful rebels defect with the garrison ships, get a 60 min cooldown, and may attract supporter fleets from hostile-to-former-suzerain factions.
 
+**Vassal-player relation sync.** When a faction is vassalized its relation lock is global (vanilla has no per-pair lock), which would otherwise strand player-vassal relation at whatever value it happened to be at vassalize time. To stop that, the vassal-player pair is initialized to the suzerain-player relation on vassalize and re-synced every 5 min thereafter: if you're friendly with the suzerain, you're equally friendly with the vassal (and equally hostile if the relationship sours). DW changes against the suzerain propagate to its vassals automatically.
+
 A diplomatic **embassy** (defense station, owned by suzerain) is built in the vassal's HQ sector as a `componentstate.construction` site, so the suzerain's economy actually constructs it — it isn't spawn-cheated. Defense fleet ships dispatch from the suzerain's shipyard to protect it during the build.
 
 Other features:

@@ -3178,6 +3178,53 @@
 						<signal_cue_instantly cue="EventVassalRebellionLogGC"/>
 						<signal_cue_instantly cue="EventVassalExpeditionTick"/>
 						<signal_cue_instantly cue="EventVassalExpeditionCleanup"/>
+						<signal_cue_instantly cue="EventVassalPlayerRelationSync"/>
+					</actions>
+				</cue>
+
+				<!-- Vassal-player relation sync. The vassal's relations are locked
+				     when vassalage starts (to keep Dynamic War from accidentally
+				     flipping a vassal hostile to its suzerain or vice versa), but
+				     the lock is global per faction — there's no per-pair version
+				     in vanilla. That means vassal-player relation also stays frozen
+				     at whatever it was at vassalize time, even when the player's
+				     relation with the suzerain shifts. Result: if you have +good
+				     with the suzerain you stay neutral with its vassal forever.
+
+				     This cue periodically sets vassal-player to match
+				     suzerain-player. Unlocks briefly, sets both directions, re-locks.
+				     Skip if either side of the pair is the player or if the pair
+				     is diplomacy-excluded (the engine silently ignores those). -->
+				<cue name="EventVassalPlayerRelationSync" instantiate="true">
+					<conditions>
+						<event_cue_signalled/>
+					</conditions>
+					<actions>
+						<do_for_each name="$LocSyncV" in="$DUDVT.$DUVassalTable.keys.list">
+							<do_if value="@$LocSyncV
+							              and ($LocSyncV != faction.player)
+							              and @$DUDVT.$DUVassalTable.{$LocSyncV}.$Suzerain
+							              and ($DUDVT.$DUVassalTable.{$LocSyncV}.$Suzerain != faction.player)
+							              and (not $LocSyncV.isdiplomacyexcluded.{faction.player})">
+								<set_value name="$LocSyncSuz" exact="$DUDVT.$DUVassalTable.{$LocSyncV}.$Suzerain"/>
+								<set_value name="$LocSyncTarget" exact="$LocSyncSuz.relationto.{faction.player}"/>
+								<set_value name="$LocSyncCurrent" exact="$LocSyncV.relationto.{faction.player}"/>
+								<!-- Tolerance to avoid thrashing on tiny floating-point deltas. -->
+								<do_if value="(($LocSyncTarget - $LocSyncCurrent) ge 0.02) or (($LocSyncCurrent - $LocSyncTarget) ge 0.02)">
+									<set_faction_relation_locked faction="$LocSyncV" locked="false"/>
+									<set_faction_relation faction="$LocSyncV" otherfaction="faction.player" value="$LocSyncTarget"/>
+									<set_faction_relation faction="faction.player" otherfaction="$LocSyncV" value="$LocSyncTarget"/>
+									<set_faction_relation_locked faction="$LocSyncV" locked="true"/>
+									<do_if value="$DUDVT.$DUVassalDetailedDebug">
+										<debug_text text="'MOD: DAVassal -- relation sync: %s player rel %s -> %s (matches suzerain %s)'.[$LocSyncV, $LocSyncCurrent, $LocSyncTarget, $LocSyncSuz]" context="true" filter="general"/>
+									</do_if>
+								</do_if>
+								<remove_value name="$LocSyncSuz"/>
+								<remove_value name="$LocSyncTarget"/>
+								<remove_value name="$LocSyncCurrent"/>
+							</do_if>
+						</do_for_each>
+						<remove_value name="$LocSyncV"/>
 					</actions>
 				</cue>
 				<cue name="EventVassalRebellionCheck" instantiate="true">
@@ -4547,6 +4594,20 @@
 						<remove_value name="$LocVCClaimspace"/>
 						<set_faction_relation faction="$LocVassal" otherfaction="$LocSuzerain" value="1.0"/>
 						<set_faction_relation faction="$LocSuzerain" otherfaction="$LocVassal" value="1.0"/>
+						<!-- Inherit the suzerain's player relation onto the vassal-player
+						     pair BEFORE locking. Otherwise the lock freezes vassal-player
+						     at whatever it happened to be at vassalize time (often 0 if
+						     the player has never directly interacted with the vassal),
+						     and Dynamic War can no longer shift it — you stay neutral
+						     to a faction your ally is friendly with. Skip if either side
+						     of the new pair is the player, or if the pair is
+						     diplomacy-excluded. -->
+						<do_if value="$LocSuzerain != faction.player and $LocVassal != faction.player and not $LocVassal.isdiplomacyexcluded.{faction.player}">
+							<set_value name="$LocVassalPlayerInit" exact="$LocSuzerain.relationto.{faction.player}"/>
+							<set_faction_relation faction="$LocVassal" otherfaction="faction.player" value="$LocVassalPlayerInit"/>
+							<set_faction_relation faction="faction.player" otherfaction="$LocVassal" value="$LocVassalPlayerInit"/>
+							<remove_value name="$LocVassalPlayerInit"/>
+						</do_if>
 						<set_faction_relation_locked faction="$LocVassal" locked="true"/>
 						<do_if value="$DUDVT.$DUVassalSiblingPeaceEnable">
 							<do_for_each name="$LocSibling" in="$DUDVT.$DUVassalTable.keys.list">
@@ -4758,6 +4819,19 @@
 						     Output: $LocSpawnedShips (list)
 						     Behavior: ships spawn at the fleet owner's shipyard (if found) and fly to $LocSpawnSector to patrol. Falls back to spawning in $LocSpawnSector if no shipyard. -->
 						<set_value name="$LocSpawnedShips" exact="[]"/>
+						<!-- Defensive validity check on $LocFleetOwner / $LocPurposeFaction.
+						     Earlier an expedition tick that resolved one of these to null
+						     produced "Expedition Flagship"-named ships with no owner
+						     (X4 9.0 silently accepts a null <owner> on create_ship rather
+						     than erroring). $LocGarrSpawnSkip wraps the rest of the
+						     library body so we can early-exit cleanly without <return/>
+						     (invalid in include_actions libs per gotchas doc). -->
+						<set_value name="$LocGarrSpawnSkip" exact="false"/>
+						<do_if value="not @$LocFleetOwner or not $LocFleetOwner.exists or not @$LocPurposeFaction or not $LocPurposeFaction.exists">
+							<debug_text text="'MOD: DAVassal -- garrison spawn aborted: invalid fleet owner (%s) or purpose faction (%s).'.[@$LocFleetOwner, @$LocPurposeFaction]" context="true" filter="error"/>
+							<set_value name="$LocGarrSpawnSkip" exact="true"/>
+						</do_if>
+						<do_if value="not $LocGarrSpawnSkip">
 						<set_value name="$LocGarrPrefix" exact="if @$LocGarrLabel then $LocGarrLabel else $LocFleetOwner.shortname"/>
 						<!-- Find the fleet owner's shipyard or wharf - this is where ships actually materialize. -->
 						<set_value name="$LocOriginStation" exact="null"/>
@@ -4931,6 +5005,8 @@
 						<remove_value name="$LocGarrPrefix"/>
 						<remove_value name="$LocOriginStation"/>
 						<remove_value name="$LocOriginSector"/>
+						</do_if>
+						<remove_value name="$LocGarrSpawnSkip"/>
 					</actions>
 				</library>
 				<cue name="EventVassalForceVassalize" instantiate="true">
@@ -5024,6 +5100,25 @@
 					<actions>
 						<do_for_each name="$LocEV" in="$DUDVT.$DUVassalTable.keys.list">
 							<do_if value="$DUDVT.$DUVassalTable.{$LocEV}.$Expeditions? and ($DUDVT.$DUVassalTable.{$LocEV}.$Expeditions.count gt 0)">
+
+								<!-- Immediate-orphan pass: walk every tracked expedition
+								     ship; if any one of them is ownerless or owned by
+								     a faction other than the expedition's vassal,
+								     destroy now. Old "Expedition Flagship"-style
+								     ownerless ships from prior buggy spawns get cleared
+								     here without waiting for the expiration timer. -->
+								<do_for_each name="$LocEVE" in="$DUDVT.$DUVassalTable.{$LocEV}.$Expeditions">
+									<do_for_each name="$LocEVS" in="$LocEVE.{1}">
+										<do_if value="@$LocEVS and $LocEVS.exists and ((not @$LocEVS.owner) or ($LocEVS.owner != $LocEV))">
+											<do_if value="$DUDVT.$DUVassalDetailedDebug">
+												<debug_text text="'MOD: DAVassal -- expedition cleanup: destroying orphan %s (owner=%s, expected=%s).'.[$LocEVS, @$LocEVS.owner, $LocEV]" context="true" filter="general"/>
+											</do_if>
+											<destroy_object object="$LocEVS" explosion="false"/>
+										</do_if>
+									</do_for_each>
+									<remove_value name="$LocEVS"/>
+								</do_for_each>
+
 								<set_value name="$LocEVExpired" exact="[]"/>
 								<do_for_each name="$LocEVE" in="$DUDVT.$DUVassalTable.{$LocEV}.$Expeditions">
 									<do_if value="player.age gt $LocEVE.{3}">
@@ -5032,7 +5127,7 @@
 								</do_for_each>
 								<do_for_each name="$LocEVE" in="$LocEVExpired">
 									<do_for_each name="$LocEVS" in="$LocEVE.{1}">
-										<do_if value="$LocEVS and $LocEVS.exists">
+										<do_if value="@$LocEVS and $LocEVS.exists">
 											<destroy_object object="$LocEVS" explosion="false"/>
 										</do_if>
 									</do_for_each>
