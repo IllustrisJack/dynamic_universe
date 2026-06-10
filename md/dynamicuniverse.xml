@@ -122,9 +122,18 @@
 				<set_value name="$DUDVT.$DUVassalGarrisonReinforceThresholdPct" exact="50"/>
 				<set_value name="$DUDVT.$DUVassalShipLossHappinessEnable" exact="true"/>
 				<set_value name="$DUDVT.$DUVassalCombatCleanupEnable" exact="true"/>
-				<!-- Cultural fit modifier: vassal & suzerain with different primary race get an ongoing happiness drain because the vassal "doesn't like it". 0 = no penalty. -->
-				<set_value name="$DUDVT.$DUVassalCulturalMismatchPenalty" exact="1.0"/>
+				<!-- Cultural fit modifier: legacy continuous drain when vassal and
+				     suzerain don't share primary race. Still wired into the older
+				     continuous-drain path if non-zero. Default reduced to 0 in
+				     the hybrid model — cultural mismatch now fires as a discrete
+				     event from the event lottery (EventVassalHappinessEvent). -->
+				<set_value name="$DUDVT.$DUVassalCulturalMismatchPenalty" exact="0.0"/>
 				<set_value name="$DUDVT.$DUVassalAutoGiftEnable" exact="true"/>
+				<!-- Hybrid happiness model tunables (event lottery + military crisis). -->
+				<set_value name="$DUDVT.$DUVassalHappinessEventsEnable" exact="true"/>
+				<set_value name="$DUDVT.$DUVassalHappinessEventIntervalMinutes" exact="25"/>
+				<set_value name="$DUDVT.$DUVassalMilCrisisThreshold" exact="1.2"/>
+				<set_value name="$DUDVT.$DUVassalMilCrisisDrain" exact="2.0"/>
 				<set_value name="$DUDVT.$DUVassalDynamicTributeEnable" exact="true"/>
 				<set_value name="$DUDVT.$DUVassalTributeReviewMinutes" exact="20"/>
 				<set_value name="$DUDVT.$DUVassalConquestInitialHappiness" exact="35.0"/>
@@ -3532,9 +3541,15 @@
 								<remove_value name="$LocSuzWars"/>
 							</do_if>
 							<set_value name="$LocTributePct" exact="$DUDVT.$DUVassalTable.{$LocV}.$TributePct"/>
-							<set_value name="$LocDelta" exact="-($LocTributePct - 3.0) * 0.75" operation="add"/>
-							<set_value name="$LocHoursVassal" exact="(player.age - $DUDVT.$DUVassalTable.{$LocV}.$Since) / 3600"/>
-							<set_value name="$LocDelta" exact="-[2.0, ($LocHoursVassal)f / 30.0].min" operation="add"/>
+							<!-- Tribute drain — gentle continuous cost.
+							     Coefficient was 0.75 in the legacy continuous-drain
+							     model; reduced to 0.5 for the hybrid model where most
+							     drift is event-driven. At 5% tribute = -0.33/tick;
+							     at 8% = -0.83/tick. -->
+							<set_value name="$LocDelta" exact="-($LocTributePct - 3.0) * 0.5" operation="add"/>
+							<!-- Tenure drain (legacy): removed. Vassalages no longer
+							     decay just from elapsed time — happiness now drifts
+							     via the event lottery (EventVassalHappinessEvent). -->
 							<find_sector name="$LocSectors" multiple="true" owner="$LocV" space="player.galaxy"/>
 							<set_value name="$LocCurrentCount" exact="$LocSectors.count"/>
 							<set_value name="$LocLost" exact="0"/>
@@ -3548,6 +3563,21 @@
 							<set_value name="$DUDVT.$DUVassalTable.{$LocV}.$LastTickSectorsLost" exact="$LocLost"/>
 							<remove_value name="$LocLost"/>
 							<remove_value name="$LocSectors"/>
+							<!-- Crisis layer: military pressure drain. If the suzerain's
+							     fight-purpose threatscore drops below ($DUVassalMilCrisisThreshold ×
+							     combined-bloc-of-its-vassals), happiness drains per
+							     tick proportional to how short the suzerain is. Vassals
+							     sense weakness and start to break away. Threshold default
+							     1.2 (suzerain needs ~20% more force than the bloc to
+							     project authority); drain caps at $DUVassalMilCrisisDrain
+							     when suz_mil is zero.
+
+							     Legacy continuous factors removed (replaced by event
+							     lottery in EventVassalHappinessEvent): vassal-too-strong
+							     binary penalty, cultural-mismatch ongoing drain,
+							     war-aligned-race-enemy drain, war-count drain,
+							     shared-enemy bonus, dominance bonus. Those now fire
+							     as discrete weighted events when conditions are met. -->
 							<set_value name="$LocSuzerain" exact="$LocSuz"/>
 							<include_actions ref="md.DynamicUniverse.Library_VassalGetVassalsOf"/>
 							<set_value name="$LocCombinedMil" exact="0"/>
@@ -3564,49 +3594,17 @@
 								<set_value name="$LocSuzMil" exact="$LocS.threatscore" operation="add"/>
 							</do_for_each>
 							<remove_value name="$LocSuzShips"/>
-							<do_if value="$LocSuzMil gt 0">
-								<set_value name="$LocRatio" exact="($LocCombinedMil)f / ($LocSuzMil)f"/>
-								<do_if value="$LocRatio ge 1.0">
-									<set_value name="$LocDelta" exact="-3.0" operation="add"/>
+							<do_if value="$LocCombinedMil gt 0">
+								<set_value name="$LocCrisisCap" exact="($LocCombinedMil)f * ($DUDVT.$DUVassalMilCrisisThreshold)f"/>
+								<do_if value="($LocSuzMil)f lt $LocCrisisCap">
+									<set_value name="$LocCrisisRatio" exact="1.0f - ($LocSuzMil)f / $LocCrisisCap"/>
+									<set_value name="$LocDelta" exact="-($DUDVT.$DUVassalMilCrisisDrain)f * $LocCrisisRatio" operation="add"/>
+									<do_if value="$DUDVT.$DUVassalDetailedDebug">
+										<debug_text text="'MOD: DAVassal -- crisis %s under %s: suzMil %s vs need %s (drain %s)'.[$LocV, $LocSuz, ($LocSuzMil)i, ($LocCrisisCap)i, -($DUDVT.$DUVassalMilCrisisDrain)f * $LocCrisisRatio]" context="false" filter="scripts"/>
+									</do_if>
+									<remove_value name="$LocCrisisRatio"/>
 								</do_if>
-								<do_elseif value="$LocRatio le 0.5">
-									<set_value name="$LocDelta" exact="3.0" operation="add"/>
-								</do_elseif>
-								<remove_value name="$LocRatio"/>
-							</do_if>
-							<do_for_each name="$LocEnemy" in="$DUDVT.$DUVassalTable.{$LocV}.$WarAlignmentSnapshot">
-								<do_if value="$LocV.primaryrace == $LocEnemy.primaryrace">
-									<set_value name="$LocDelta" exact="-2.0" operation="add"/>
-								</do_if>
-							</do_for_each>
-							<!-- Cultural mismatch: vassal & suzerain don't share primary race -> ongoing happiness drain. Splinter factions (Argon/Antigone, Terran/Pioneers, etc.) share race so 0 penalty. -->
-							<do_if value="$LocV.primaryrace != $LocSuz.primaryrace">
-								<set_value name="$LocDelta" exact="-$DUDVT.$DUVassalCulturalMismatchPenalty" operation="add"/>
-							</do_if>
-							<!-- War-state factors: drain per ongoing war, boosts for winning + shared enemies + dominance. -->
-							<set_value name="$LocSuzWarCount" exact="0"/>
-							<set_value name="$LocSharedEnemyMatches" exact="0"/>
-							<get_factions_by_tag tag="tag.claimspace" result="$LocClaimspace"/>
-							<do_for_each name="$LocOther" in="$LocClaimspace">
-								<do_if value="($LocOther != $LocSuz) and ($LocOther != $LocV) and ($LocOther != faction.player) and (not $DUDVT.$DUDynamicWarPermaExcludedFactions.indexof.{$LocOther}) and ($LocSuz.relationto.{$LocOther} le -0.1)">
-									<set_value name="$LocSuzWarCount" exact="1" operation="add"/>
-									<do_for_each name="$LocAlignEnemy" in="$DUDVT.$DUVassalTable.{$LocV}.$WarAlignmentSnapshot">
-										<do_if value="$LocOther.primaryrace == $LocAlignEnemy.primaryrace">
-											<set_value name="$LocSharedEnemyMatches" exact="1" operation="add"/>
-										</do_if>
-									</do_for_each>
-								</do_if>
-							</do_for_each>
-							<remove_value name="$LocClaimspace"/>
-							<set_value name="$LocWarDrain" exact="[$LocSuzWarCount, 4].min"/>
-							<set_value name="$LocDelta" exact="-$LocWarDrain" operation="add"/>
-							<set_value name="$LocDelta" exact="$LocSharedEnemyMatches" operation="add"/>
-							<remove_value name="$LocSuzWarCount"/>
-							<remove_value name="$LocSharedEnemyMatches"/>
-							<remove_value name="$LocWarDrain"/>
-							<!-- Suzerain dominance bonus: if suzerain military >= 1.5x combined vassal military -->
-							<do_if value="($LocSuzMil gt 0) and (($LocSuzMil)f gt (1.5 * ($LocCombinedMil)f))">
-								<set_value name="$LocDelta" exact="1.0" operation="add"/>
+								<remove_value name="$LocCrisisCap"/>
 							</do_if>
 							<!-- War success bonus: suzerain gained sectors since last tick -> happy vassal -->
 							<find_sector name="$LocSuzSectorList" multiple="true" owner="$LocSuz" space="player.galaxy"/>
@@ -5182,6 +5180,194 @@
 						<remove_value name="$LocEV"/>
 					</actions>
 				</cue>
+
+				<!-- Hybrid happiness model — event lottery. Fires for each vassal
+				     ~every $DUVassalHappinessEventIntervalMinutes (default 25 min),
+				     rolls a weighted pool of conditional events, applies the
+				     selected event's delta + logbook entry. Replaces the legacy
+				     continuous drain factors (tenure, cultural mismatch, war
+				     drain, etc.) with discrete narrative beats.
+
+				     Per-vassal eligibility check: only fires if the vassal has
+				     no $LastHappinessEvent timestamp, or it's been at least
+				     $DUVassalHappinessEventIntervalMinutes since the last one.
+				     This avoids the debug "Run All Ticks" button spamming events
+				     when the user clicks it back-to-back. -->
+				<cue name="TimerVassalHappinessEvents" instantiate="true" checkinterval="5min" checktime="13min" comment="Timer 03/33">
+					<conditions>
+						<check_value value="$DUDVT.$DUVassalEnable and $DUDVT.$DUVassalHappinessEventsEnable"/>
+					</conditions>
+					<actions>
+						<signal_cue_instantly cue="EventVassalHappinessEvent"/>
+					</actions>
+				</cue>
+
+				<cue name="EventVassalHappinessEvent" instantiate="true">
+					<conditions>
+						<event_cue_signalled/>
+					</conditions>
+					<actions>
+						<do_for_each name="$LocHEV" in="$DUDVT.$DUVassalTable.keys.list">
+							<set_value name="$LocHESuz" exact="$DUDVT.$DUVassalTable.{$LocHEV}.$Suzerain"/>
+
+							<!-- Per-vassal rate gate: skip if event fired recently. -->
+							<set_value name="$LocHELast" exact="if @$DUDVT.$DUVassalTable.{$LocHEV}.$LastHappinessEvent then $DUDVT.$DUVassalTable.{$LocHEV}.$LastHappinessEvent else 0s"/>
+							<do_if value="player.age ge $LocHELast + ($DUDVT.$DUVassalHappinessEventIntervalMinutes)min">
+								<!-- Build weighted event pool. Each entry is
+								     [weight, delta, $shortcode]. Shortcode picks which
+								     logbook text to emit. Conditions check first; the
+								     entry only enters the pool if its condition holds. -->
+								<set_value name="$LocHEPool" exact="[]"/>
+
+								<!-- Conditions used by multiple events. -->
+								<set_value name="$LocHETribPct" exact="$DUDVT.$DUVassalTable.{$LocHEV}.$TributePct"/>
+								<set_value name="$LocHESameRace" exact="$LocHEV.primaryrace == $LocHESuz.primaryrace"/>
+
+								<!-- Suzerain war count (cached for several event checks). -->
+								<set_value name="$LocHESuzWars" exact="0"/>
+								<get_factions_by_tag tag="tag.claimspace" result="$LocHEClaim"/>
+								<do_for_each name="$LocHEOther" in="$LocHEClaim">
+									<do_if value="($LocHEOther != $LocHESuz) and ($LocHEOther != $LocHEV) and ($LocHEOther != faction.player) and (not $DUDVT.$DUDynamicWarPermaExcludedFactions.indexof.{$LocHEOther}) and ($LocHESuz.relationto.{$LocHEOther} le -0.1)">
+										<set_value name="$LocHESuzWars" exact="1" operation="add"/>
+									</do_if>
+								</do_for_each>
+								<remove_value name="$LocHEClaim"/>
+								<remove_value name="$LocHEOther"/>
+
+								<!-- Suzerain dominance (kept for "strong protector" event). -->
+								<set_value name="$LocHESuzMil" exact="0"/>
+								<find_ship_by_true_owner name="$LocHESuzShips" multiple="true" faction="$LocHESuz" space="player.galaxy" masstraffic="false" class="[class.ship_xl, class.ship_l, class.ship_m, class.ship_s]" primarypurpose="purpose.fight"/>
+								<do_for_each name="$LocHES" in="$LocHESuzShips">
+									<set_value name="$LocHESuzMil" exact="$LocHES.threatscore" operation="add"/>
+								</do_for_each>
+								<remove_value name="$LocHESuzShips"/>
+								<set_value name="$LocHEVMil" exact="0"/>
+								<find_ship_by_true_owner name="$LocHEVShips" multiple="true" faction="$LocHEV" space="player.galaxy" masstraffic="false" class="[class.ship_xl, class.ship_l, class.ship_m, class.ship_s]" primarypurpose="purpose.fight"/>
+								<do_for_each name="$LocHES" in="$LocHEVShips">
+									<set_value name="$LocHEVMil" exact="$LocHES.threatscore" operation="add"/>
+								</do_for_each>
+								<remove_value name="$LocHEVShips"/>
+
+								<!-- Positive events -->
+								<append_to_list name="$LocHEPool" exact="[3, 2, 'cultural_exchange']"/>
+								<append_to_list name="$LocHEPool" exact="[2, 3, 'trade_boom']"/>
+								<do_if value="$LocHESameRace">
+									<append_to_list name="$LocHEPool" exact="[2, 3, 'kinship_bond']"/>
+								</do_if>
+								<do_if value="($LocHESuzMil gt 0) and (($LocHESuzMil)f gt (1.5 * ($LocHEVMil)f))">
+									<append_to_list name="$LocHEPool" exact="[2, 3, 'strong_protector']"/>
+								</do_if>
+								<do_if value="@$DUDVT.$DUVassalTable.{$LocHEV}.$LastTickSectorsLost and ($DUDVT.$DUVassalTable.{$LocHEV}.$LastTickSectorsLost == 0)">
+									<append_to_list name="$LocHEPool" exact="[1, 2, 'stable_realm']"/>
+								</do_if>
+
+								<!-- Negative events -->
+								<append_to_list name="$LocHEPool" exact="[2, -3, 'political_scandal']"/>
+								<append_to_list name="$LocHEPool" exact="[1, -2, 'bad_omen']"/>
+								<do_if value="$LocHETribPct gt 5">
+									<append_to_list name="$LocHEPool" exact="[($LocHETribPct - 4)i, -3, 'tribute_resentment']"/>
+								</do_if>
+								<do_if value="not $LocHESameRace">
+									<append_to_list name="$LocHEPool" exact="[3, -3, 'cultural_friction']"/>
+								</do_if>
+								<do_if value="$LocHESuzWars ge 2">
+									<append_to_list name="$LocHEPool" exact="[$LocHESuzWars, -2, 'wartime_strain']"/>
+								</do_if>
+
+								<!-- Total weight, then pick. -->
+								<set_value name="$LocHETotalW" exact="0"/>
+								<do_for_each name="$LocHEEntry" in="$LocHEPool">
+									<set_value name="$LocHETotalW" exact="$LocHEEntry.{1}" operation="add"/>
+								</do_for_each>
+
+								<do_if value="$LocHETotalW gt 0">
+									<set_value name="$LocHERoll" min="0" max="$LocHETotalW - 1"/>
+									<set_value name="$LocHECursor" exact="0"/>
+									<set_value name="$LocHEPicked" exact="null"/>
+									<do_for_each name="$LocHEEntry" in="$LocHEPool">
+										<do_if value="$LocHEPicked == null">
+											<set_value name="$LocHECursor" exact="$LocHEEntry.{1}" operation="add"/>
+											<do_if value="$LocHERoll lt $LocHECursor">
+												<set_value name="$LocHEPicked" exact="$LocHEEntry"/>
+											</do_if>
+										</do_if>
+									</do_for_each>
+
+									<do_if value="$LocHEPicked != null">
+										<set_value name="$LocHEDelta" exact="$LocHEPicked.{2}"/>
+										<set_value name="$LocHECode" exact="$LocHEPicked.{3}"/>
+										<set_value name="$LocHappiness" exact="$DUDVT.$DUVassalTable.{$LocHEV}.$Happiness + $LocHEDelta"/>
+										<set_value name="$LocVassal" exact="$LocHEV"/>
+										<include_actions ref="md.DynamicUniverse.Library_VassalSetHappiness"/>
+										<remove_value name="$LocVassal"/>
+										<remove_value name="$LocHappiness"/>
+										<set_value name="$DUDVT.$DUVassalTable.{$LocHEV}.$LastHappinessEvent" exact="player.age"/>
+
+										<!-- Logbook entry. Inline literal text — easy to localize
+										     later by swapping for {33232474,N} entries. -->
+										<set_value name="$LocHEText" exact="'?'"/>
+										<do_if value="$LocHECode == 'cultural_exchange'">
+											<set_value name="$LocHEText" exact="'%s held a cultural exchange with %s. Goodwill rises (+%s).'.[$LocHEV.name, $LocHESuz.name, $LocHEDelta]"/>
+										</do_if>
+										<do_if value="$LocHECode == 'trade_boom'">
+											<set_value name="$LocHEText" exact="'A trade boom in %s benefits the %s realm (+%s).'.[$LocHEV.name, $LocHESuz.name, $LocHEDelta]"/>
+										</do_if>
+										<do_if value="$LocHECode == 'kinship_bond'">
+											<set_value name="$LocHEText" exact="'Shared heritage between %s and %s strengthens the bond (+%s).'.[$LocHEV.name, $LocHESuz.name, $LocHEDelta]"/>
+										</do_if>
+										<do_if value="$LocHECode == 'strong_protector'">
+											<set_value name="$LocHEText" exact="'%s feels secure under %s\\'s protection (+%s).'.[$LocHEV.name, $LocHESuz.name, $LocHEDelta]"/>
+										</do_if>
+										<do_if value="$LocHECode == 'stable_realm'">
+											<set_value name="$LocHEText" exact="'%s enjoys a period of stability (+%s).'.[$LocHEV.name, $LocHEDelta]"/>
+										</do_if>
+										<do_if value="$LocHECode == 'political_scandal'">
+											<set_value name="$LocHEText" exact="'A political scandal involving %s strains relations (%s).'.[$LocHESuz.name, $LocHEDelta]"/>
+										</do_if>
+										<do_if value="$LocHECode == 'bad_omen'">
+											<set_value name="$LocHEText" exact="'Ill omens trouble %s (%s).'.[$LocHEV.name, $LocHEDelta]"/>
+										</do_if>
+										<do_if value="$LocHECode == 'tribute_resentment'">
+											<set_value name="$LocHEText" exact="'%s grows resentful of the %s%% tribute owed to %s (%s).'.[$LocHEV.name, ($LocHETribPct)i, $LocHESuz.name, $LocHEDelta]"/>
+										</do_if>
+										<do_if value="$LocHECode == 'cultural_friction'">
+											<set_value name="$LocHEText" exact="'Cultural friction between %s and %s causes unrest (%s).'.[$LocHEV.name, $LocHESuz.name, $LocHEDelta]"/>
+										</do_if>
+										<do_if value="$LocHECode == 'wartime_strain'">
+											<set_value name="$LocHEText" exact="'%s strains under the weight of %s\\'s ongoing wars (%s).'.[$LocHEV.name, $LocHESuz.name, $LocHEDelta]"/>
+										</do_if>
+
+										<do_if value="$DUDVT.$DUVassalNewsEnable">
+											<write_to_logbook category="news" title="{33232474, 2700}" faction="$LocHEV" text="$LocHEText"/>
+										</do_if>
+										<do_if value="$DUDVT.$DUVassalDetailedDebug">
+											<debug_text text="'MOD: DAVassal -- HE %s [%s]: %s'.[$LocHEV, $LocHECode, $LocHEText]" context="false" filter="scripts"/>
+										</do_if>
+
+										<remove_value name="$LocHEText"/>
+										<remove_value name="$LocHEDelta"/>
+										<remove_value name="$LocHECode"/>
+									</do_if>
+									<remove_value name="$LocHERoll"/>
+									<remove_value name="$LocHECursor"/>
+									<remove_value name="$LocHEPicked"/>
+								</do_if>
+
+								<remove_value name="$LocHEPool"/>
+								<remove_value name="$LocHETotalW"/>
+								<remove_value name="$LocHETribPct"/>
+								<remove_value name="$LocHESameRace"/>
+								<remove_value name="$LocHESuzWars"/>
+								<remove_value name="$LocHESuzMil"/>
+								<remove_value name="$LocHEVMil"/>
+							</do_if>
+							<remove_value name="$LocHELast"/>
+							<remove_value name="$LocHESuz"/>
+						</do_for_each>
+						<remove_value name="$LocHEV"/>
+					</actions>
+				</cue>
+
 				<cue name="EventVassalDebugDump" instantiate="true">
 					<conditions>
 						<event_cue_signalled/>
@@ -5690,6 +5876,23 @@
 						</do_if>
 						<do_if value="(not $DUDVT.$DUVassalAutoGiftEnable?) or (not ((typeof $DUDVT.$DUVassalAutoGiftEnable == datatype.integer) and (($DUDVT.$DUVassalAutoGiftEnable == 1) or ($DUDVT.$DUVassalAutoGiftEnable == 0))))">
 							<set_value name="$DUDVT.$DUVassalAutoGiftEnable" exact="true"/>
+							<set_value name="$MissingVarCount" exact="1" operation="add"/>
+						</do_if>
+						<!-- Hybrid happiness model (event lottery + military crisis). -->
+						<do_if value="(not $DUDVT.$DUVassalHappinessEventsEnable?) or (not ((typeof $DUDVT.$DUVassalHappinessEventsEnable == datatype.integer) and (($DUDVT.$DUVassalHappinessEventsEnable == 1) or ($DUDVT.$DUVassalHappinessEventsEnable == 0))))">
+							<set_value name="$DUDVT.$DUVassalHappinessEventsEnable" exact="true"/>
+							<set_value name="$MissingVarCount" exact="1" operation="add"/>
+						</do_if>
+						<do_if value="(not $DUDVT.$DUVassalHappinessEventIntervalMinutes?) or (not ($DUDVT.$DUVassalHappinessEventIntervalMinutes ge 1))">
+							<set_value name="$DUDVT.$DUVassalHappinessEventIntervalMinutes" exact="25"/>
+							<set_value name="$MissingVarCount" exact="1" operation="add"/>
+						</do_if>
+						<do_if value="(not $DUDVT.$DUVassalMilCrisisThreshold?) or (not ($DUDVT.$DUVassalMilCrisisThreshold ge 0))">
+							<set_value name="$DUDVT.$DUVassalMilCrisisThreshold" exact="1.2"/>
+							<set_value name="$MissingVarCount" exact="1" operation="add"/>
+						</do_if>
+						<do_if value="(not $DUDVT.$DUVassalMilCrisisDrain?) or (not ($DUDVT.$DUVassalMilCrisisDrain ge 0))">
+							<set_value name="$DUDVT.$DUVassalMilCrisisDrain" exact="2.0"/>
 							<set_value name="$MissingVarCount" exact="1" operation="add"/>
 						</do_if>
 						<do_if value="(not $DUDVT.$DUVassalDynamicTributeEnable?) or (not ((typeof $DUDVT.$DUVassalDynamicTributeEnable == datatype.integer) and (($DUDVT.$DUVassalDynamicTributeEnable == 1) or ($DUDVT.$DUVassalDynamicTributeEnable == 0))))">
