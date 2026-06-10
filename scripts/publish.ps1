@@ -47,7 +47,14 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Source folder on disk (legacy from the DeadAir Scripts upstream).
 $ModName = "deadair_scripts"
+
+# Folder name shipped to Workshop subscribers. Matches content.xml id so
+# subscribers' extensions/ tree is clean and matches the mod's published name.
+# WorkshopTool's -foldername switch overrides destination folder at upload
+# time without renaming our local copy.
+$PublishedFolderName = "dynamic_universe"
 
 function Get-SteamLibraries {
     $roots = @(
@@ -125,10 +132,10 @@ Write-Host "Mod path:     $ModPath" -ForegroundColor DarkGray
 
 if ($Update) {
     Write-Host "Updating Workshop item..." -ForegroundColor Cyan
-    & $WorkshopTool update -path $ModPath -buildcat -changenote $ChangeNote
+    & $WorkshopTool update -path $ModPath -foldername $PublishedFolderName -buildcat -changenote $ChangeNote
 } else {
     Write-Host "First-publishing Workshop item..." -ForegroundColor Cyan
-    & $WorkshopTool publishx4 -path $ModPath -preview $previewPath -buildcat
+    & $WorkshopTool publishx4 -path $ModPath -foldername $PublishedFolderName -preview $previewPath -buildcat
 }
 
 if ($LASTEXITCODE -ne 0) {

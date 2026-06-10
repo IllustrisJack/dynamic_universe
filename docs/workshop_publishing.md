@@ -142,7 +142,7 @@ X4 loads the version catalog if it matches the running game version; else falls 
 | `<dependency version="900"/>` for X4 9.0 | ✓ |
 | SirNukes API dep (`ws_2042901274`) | ✓ |
 | Preview image | `preview.png` (1920×1080) ✓ |
-| Deployed folder name | `deadair_scripts` (legacy). For Workshop subscribers to get `dynamic_universe` as the folder name, either rename `<X4>/extensions/deadair_scripts` → `dynamic_universe` before first publish, **or** add `-foldername dynamic_universe` to the publish call in `publish.ps1`. |
+| Deployed folder name | Source stays `deadair_scripts` (legacy). `publish.ps1` passes `-foldername dynamic_universe` so subscribers' Workshop install lands in `extensions/dynamic_universe/` to match `content.xml id`. ✓ |
 | `DeadAir_Eco` dep | Optional, Nexus-only (not on Workshop). Subscribers using Nexus copy will resolve by local `id`; subscribers wanting Workshop-only DLC support won't auto-install. Acceptable as-is for an optional dep. |
 
 ### Blockades (`I:/Software/blockade_behavior`)
