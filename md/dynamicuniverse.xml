@@ -4801,7 +4801,24 @@
 									<remove_value name="$LocFleetOwner"/>
 									<do_if value="$LocSpawnedShips.count gt 0">
 										<set_value name="$DUDVT.$DUVassalTable.{$LocVassal}.$EmbassyDefenseShips" exact="$LocSpawnedShips"/>
-										<debug_text text="'MOD: DAVassal -- embassy defense fleet dispatched: %s ships to %s'.[$LocSpawnedShips.count, $LocCoopSector]" context="true" filter="general"/>
+										<!-- Re-task from Patrol/Escort (set by Library_VassalGarrisonSpawn)
+										     to ProtectPosition anchored at the embassy site. ProtectStation
+										     can't target an unbuilt construction site (vanilla expects an
+										     operational station), so ProtectPosition with the site's
+										     sector + position is the working approximation. Each ship runs
+										     ProtectPosition independently — they cluster at the anchor
+										     instead of following the leader's Patrol radius. -->
+										<do_for_each name="$LocEDSh" in="$LocSpawnedShips">
+											<do_if value="@$LocEDSh.exists and @$LocCoopStation.exists">
+												<create_order id="'ProtectPosition'" object="$LocEDSh" default="true">
+													<param name="destination" value="[$LocCoopSector, $LocCoopStation.position]"/>
+													<param name="pursuetargets" value="false"/>
+													<param name="attackonsight" value="true"/>
+												</create_order>
+											</do_if>
+										</do_for_each>
+										<remove_value name="$LocEDSh"/>
+										<debug_text text="'MOD: DAVassal -- embassy defense fleet dispatched: %s ships to %s (ProtectPosition at %s)'.[$LocSpawnedShips.count, $LocCoopSector, $LocCoopStation]" context="true" filter="general"/>
 										<set_value name="$LocCoopDefText" exact="'%s'.[{33232474, 2895}].[(if $LocSuzerain == faction.player then player.name else $LocSuzerain.name), $LocSpawnedShips.count, $LocCoopSector.knownname]"/>
 										<write_to_logbook category="news" title="{33232474, 2700}" faction="$LocSuzerain" text="$LocCoopDefText"/>
 										<remove_value name="$LocCoopDefText"/>
