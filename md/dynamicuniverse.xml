@@ -4123,6 +4123,13 @@
 						     builds when the candidate faction filter passed a stale
 						     reference; that row then shows up in suzerain UIs as an
 						     empty vassal entry. -->
+						<!-- Dump table contents on every load so "vassal lost on
+						     reload" reports can be diagnosed against ground truth
+						     instead of UI rendering. -->
+						<debug_text text="'MOD: DAVassal -- LOAD: vassal table has %s entries.'.[$DUDVT.$DUVassalTable.keys.count]" context="true" filter="general"/>
+						<do_for_each name="$LocSanDumpK" in="$DUDVT.$DUVassalTable.keys.list">
+							<debug_text text="'MOD: DAVassal -- LOAD: vassal=%s suz=%s happiness=%s since=%s'.[$LocSanDumpK, @$DUDVT.$DUVassalTable.{$LocSanDumpK}.$Suzerain, @$DUDVT.$DUVassalTable.{$LocSanDumpK}.$Happiness, @$DUDVT.$DUVassalTable.{$LocSanDumpK}.$Since]" context="true" filter="general"/>
+						</do_for_each>
 						<set_value name="$LocSanPurge" exact="[]"/>
 						<do_for_each name="$LocSanK" in="$DUDVT.$DUVassalTable.keys.list">
 							<do_if value="(not $LocSanK?) or ($LocSanK == null) or (not @$DUDVT.$DUVassalTable.{$LocSanK}.$Suzerain) or ($DUDVT.$DUVassalTable.{$LocSanK}.$Suzerain == null)">
