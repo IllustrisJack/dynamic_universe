@@ -4111,6 +4111,31 @@
 						<remove_value name="$LocOrphans"/>
 					</actions>
 				</cue>
+				<cue name="EventVassalTableSanitize" instantiate="true">
+					<conditions>
+						<event_game_loaded/>
+					</conditions>
+					<actions>
+						<!-- Savegame-stable sanitizer: remove entries with null keys
+						     (key resolves to null when read back) or null/missing
+						     Suzerain. Valid vassal/suzerain pairs are preserved.
+						     Some trigger paths could insert a null-key row in older
+						     builds when the candidate faction filter passed a stale
+						     reference; that row then shows up in suzerain UIs as an
+						     empty vassal entry. -->
+						<set_value name="$LocSanPurge" exact="[]"/>
+						<do_for_each name="$LocSanK" in="$DUDVT.$DUVassalTable.keys.list">
+							<do_if value="(not $LocSanK?) or ($LocSanK == null) or (not @$DUDVT.$DUVassalTable.{$LocSanK}.$Suzerain) or ($DUDVT.$DUVassalTable.{$LocSanK}.$Suzerain == null)">
+								<append_to_list name="$LocSanPurge" exact="$LocSanK"/>
+							</do_if>
+						</do_for_each>
+						<do_for_each name="$LocSanRm" in="$LocSanPurge">
+							<debug_text text="'MOD: DAVassal -- sanitize: purging invalid vassal entry key=%s suz=%s'.[$LocSanRm, @$DUDVT.$DUVassalTable.{$LocSanRm}.$Suzerain]" context="true" filter="general"/>
+							<remove_value name="$DUDVT.$DUVassalTable.{$LocSanRm}"/>
+						</do_for_each>
+						<remove_value name="$LocSanPurge"/>
+					</actions>
+				</cue>
 				<cue name="EventVassalReconcilePoliceOnLoad" instantiate="true">
 					<conditions>
 						<check_any>
@@ -4460,7 +4485,15 @@
 				<library name="Library_VassalCreate">
 					<actions>
 						<set_value name="$LocAbortCreate" exact="false"/>
-						<do_if value="$LocSuzerain.isdiplomacyexcluded.{$LocVassal}">
+						<!-- Null guard: bail before touching the table if either faction
+						     is null. Prevents the null-key bug where a stale candidate
+						     reference inserts a phantom entry the suzerain UI then
+						     renders as an "empty" vassal. -->
+						<do_if value="(not $LocVassal?) or ($LocVassal == null) or (not $LocSuzerain?) or ($LocSuzerain == null)">
+							<debug_text text="'MOD: DAVassal -- vassalize aborted: null faction (vassal=%s suz=%s trigger=%s).'.[$LocVassal, $LocSuzerain, @$LocSourceTrigger]" context="true" filter="general"/>
+							<set_value name="$LocAbortCreate" exact="true"/>
+						</do_if>
+						<do_if value="(not $LocAbortCreate) and $LocSuzerain.isdiplomacyexcluded.{$LocVassal}">
 							<debug_text text="'MOD: DAVassal -- vassalize aborted: vanilla diplomacy exclusion between %s and %s.'.[$LocSuzerain, $LocVassal]" context="true" filter="general"/>
 							<set_value name="$LocAbortCreate" exact="true"/>
 						</do_if>
