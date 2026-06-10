@@ -6847,6 +6847,18 @@
 								$onClick=ExecuteOption_VassalDebugForceFirstRebel,
 								$onRightClick=ExecuteOption_VassalDebugForceFirstRebel,
 							]"/>
+						<!-- Test-only: grant 100M Cr to the player so the broker / coup
+						     menus can be exercised without farming. Inline literal text
+						     (not a translation entry) since this is a developer
+						     convenience, not a player-facing feature. -->
+						<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+						<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
+								$col=1, $colSpan=12,
+								$text=table[$text='Give Player +100,000,000 Cr (debug)', $color=$DUMVT.$TextBlue, $halign='center'],
+								$highlightColor=$DUMVT.$ButtonHighlight,
+								$onClick=ExecuteOption_VassalDebugGiveCredits,
+								$onRightClick=ExecuteOption_VassalDebugGiveCredits,
+							]"/>
 					</actions>
 				</cue>
 				<cue name="Menu_Politics_Dossier" instantiate="true">
@@ -7498,6 +7510,14 @@
 					<conditions><event_cue_signalled/></conditions>
 					<actions>
 						<signal_cue_instantly cue="md.DynamicUniverse.EventVassalDebugDump"/>
+					</actions>
+				</cue>
+				<cue name="ExecuteOption_VassalDebugGiveCredits" instantiate="true">
+					<conditions><event_cue_signalled/></conditions>
+					<actions>
+						<reward_player money="100000000"/>
+						<show_notification priority="1" text="'+100,000,000 Cr (debug)'"/>
+						<signal_cue_instantly cue="md.Simple_Menu_API.Refresh_Menu"/>
 					</actions>
 				</cue>
 				<cue name="ExecuteOption_VassalDebugSetHappiness" instantiate="true">
