@@ -5222,15 +5222,40 @@
 						<set_value name="$ActionDuration" exact="$Operation.duration"/>
 						<set_value name="$ActionID" exact="$Operation.action.id"/>
 						<set_value name="$Aborted" exact="false"/>
-						<!-- Deduct cost up-front (mirroring vanilla CostDeduction_DiplomaticAction) -->
-						<apply_player_influence influence="-diplomacy.action.{$ActionID}.cost.influence"/>
-						<transfer_money from="faction.player" to="faction.ownerless" amount="diplomacy.action.{$ActionID}.cost.money"/>
-						<!-- Roll success up-front to prevent save-scumming -->
-						<set_value name="$SuccessChance" exact="diplomacy.action.{$ActionID}.success.chance"/>
-						<set_value name="$Roll" min="0" max="99"/>
-						<set_value name="$Success" exact="$Roll lt $SuccessChance"/>
-						<debug_text text="'MOD: DAVassal -- propose_vassalage start vs %s, chance=%s%%, roll=%s, success=%s'.[$TargetFaction, $SuccessChance, $Roll, $Success]" context="true" filter="general"/>
-						<signal_cue_instantly cue="md.NPC_Agent.AgentsActivated.Update_AgentPlacement" param="[$Agent, ['on_mission']]"/>
+						<!-- Refuse if the target faction is already someone's vassal.
+						     Flipping an existing vassal between suzerains is the Coup
+						     mechanic (Politics → Coup d'état), which uses a different
+						     cost formula (floor 50M + worth + military, capped 5G) and
+						     applies suzerain transfer rather than a fresh vassalage.
+						     Falling through here would charge the player propose_
+						     vassalage's flat 50M for an action that has no defined
+						     handler for already-vassal targets — better to short-
+						     circuit before deduction so the player keeps their
+						     credits + influence. Agent remains free for other work. -->
+						<do_if value="@$DUDVT.$DUVassalTable.{$TargetFaction}.$Suzerain">
+							<set_value name="$AlreadyVassalSuz" exact="$DUDVT.$DUVassalTable.{$TargetFaction}.$Suzerain"/>
+							<show_notification priority="2" text="'%s already a vassal of %s. Use Coup detat to flip them.'.[$TargetFaction.name, $AlreadyVassalSuz.name]"/>
+							<debug_text text="'MOD: DAVassal -- propose_vassalage refused vs %s (already vassal of %s).'.[$TargetFaction, $AlreadyVassalSuz]" context="true" filter="general"/>
+							<remove_value name="$AlreadyVassalSuz"/>
+							<signal_cue_instantly cue="md.NPC_Agent.AgentsActivated.Update_AgentPlacement" param="[$Agent, ['hq_available']]"/>
+							<set_value name="$Refused" exact="true"/>
+							<!-- Cancel the cue tree so ProposeVassalage_Duration (which
+							     would fire after $ActionDuration and either complete the
+							     vassalization or show a misleading "failed" notification)
+							     doesn't run. -->
+							<cancel_cue cue="this"/>
+						</do_if>
+						<do_if value="not $Refused?">
+							<!-- Deduct cost up-front (mirroring vanilla CostDeduction_DiplomaticAction) -->
+							<apply_player_influence influence="-diplomacy.action.{$ActionID}.cost.influence"/>
+							<transfer_money from="faction.player" to="faction.ownerless" amount="diplomacy.action.{$ActionID}.cost.money"/>
+							<!-- Roll success up-front to prevent save-scumming -->
+							<set_value name="$SuccessChance" exact="diplomacy.action.{$ActionID}.success.chance"/>
+							<set_value name="$Roll" min="0" max="99"/>
+							<set_value name="$Success" exact="$Roll lt $SuccessChance"/>
+							<debug_text text="'MOD: DAVassal -- propose_vassalage start vs %s, chance=%s%%, roll=%s, success=%s'.[$TargetFaction, $SuccessChance, $Roll, $Success]" context="true" filter="general"/>
+							<signal_cue_instantly cue="md.NPC_Agent.AgentsActivated.Update_AgentPlacement" param="[$Agent, ['on_mission']]"/>
+						</do_if>
 					</actions>
 					<cues>
 						<cue name="ProposeVassalage_Aborted" instantiate="true">
