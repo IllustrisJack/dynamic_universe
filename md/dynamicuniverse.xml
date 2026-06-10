@@ -3218,6 +3218,17 @@
 									<do_if value="$DUDVT.$DUVassalDetailedDebug">
 										<debug_text text="'MOD: DAVassal -- relation sync: %s player rel %s -> %s (matches suzerain %s)'.[$LocSyncV, $LocSyncCurrent, $LocSyncTarget, $LocSyncSuz]" context="true" filter="general"/>
 									</do_if>
+									<!-- Logbook entry. Threshold 0.1 so small DW drift doesn't
+									     spam the news feed; only meaningful shifts (a war
+									     declared on the suzerain, a faction friendship
+									     established, etc.) produce a player-visible note.
+									     Skips when the news subsystem is disabled. -->
+									<do_if value="$DUDVT.$DUVassalNewsEnable and ((($LocSyncTarget - $LocSyncCurrent) ge 0.1) or (($LocSyncCurrent - $LocSyncTarget) ge 0.1))">
+										<write_to_logbook category="news"
+										                  title="'Diplomatic Realignment'"
+										                  faction="$LocSyncV"
+										                  text="'Following allegiance to %s, %s has adjusted its stance toward us. Relation now %s (was %s).'.[$LocSyncSuz.knownname, $LocSyncV.knownname, $LocSyncTarget, $LocSyncCurrent]"/>
+									</do_if>
 								</do_if>
 								<remove_value name="$LocSyncSuz"/>
 								<remove_value name="$LocSyncTarget"/>
