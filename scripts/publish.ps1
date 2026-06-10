@@ -23,11 +23,12 @@
   Required when -Update. Short description of what changed.
 
 .PARAMETER ModPath
-  Override the deployed mod path. Defaults to the symlinked extension dir.
+  Override the deployed mod path. Default: auto-detect under every Steam
+  library on the machine via libraryfolders.vdf.
 
 .PARAMETER WorkshopTool
-  Override the WorkshopTool.exe path. Default: auto-detect under any
-  Steam library on the machine.
+  Override the WorkshopTool.exe path. Default: auto-detect under every
+  Steam library on the machine via libraryfolders.vdf.
 
 .EXAMPLE
   # First publish (one-time)
@@ -40,38 +41,44 @@
 param(
     [switch]$Update,
     [string]$ChangeNote,
-    [string]$ModPath = "<STEAM_LIBRARY>\steamapps\common\X4 Foundations\extensions\deadair_scripts",
+    [string]$ModPath,
     [string]$WorkshopTool
 )
 
 $ErrorActionPreference = "Stop"
 
-function Find-WorkshopTool {
-    $candidates = @()
+$ModName = "deadair_scripts"
 
-    $steamRoots = @(
+function Get-SteamLibraries {
+    $roots = @(
         "$env:ProgramFiles(x86)\Steam",
-        "$env:ProgramFiles\Steam",
-        "C:\Steam"
+        "$env:ProgramFiles\Steam"
     )
-    foreach ($s in $steamRoots) {
+    $libs = @()
+    foreach ($s in $roots) {
         $vdf = Join-Path $s "steamapps\libraryfolders.vdf"
         if (Test-Path $vdf) {
             foreach ($m in (Select-String -Path $vdf -Pattern '"path"\s+"([^"]+)"' -AllMatches).Matches) {
-                $libPath = $m.Groups[1].Value -replace '\\\\','\'
-                $candidates += (Join-Path $libPath "steamapps\common\X Tools\WorkshopTool.exe")
+                $libs += ($m.Groups[1].Value -replace '\\\\','\')
             }
         }
     }
+    return $libs
+}
 
-    $candidates += @(
-        "<STEAM_LIBRARY>\steamapps\common\X Tools\WorkshopTool.exe",
-        "${env:ProgramFiles(x86)}\Steam\steamapps\common\X Tools\WorkshopTool.exe",
-        "${env:ProgramFiles}\Steam\steamapps\common\X Tools\WorkshopTool.exe"
-    )
+function Find-WorkshopTool {
+    foreach ($lib in (Get-SteamLibraries)) {
+        $candidate = Join-Path $lib "steamapps\common\X Tools\WorkshopTool.exe"
+        if (Test-Path $candidate) { return $candidate }
+    }
+    return $null
+}
 
-    foreach ($c in $candidates) {
-        if ($c -and (Test-Path $c)) { return $c }
+function Find-X4Extension {
+    param([string]$Name)
+    foreach ($lib in (Get-SteamLibraries)) {
+        $candidate = Join-Path $lib "steamapps\common\X4 Foundations\extensions\$Name"
+        if (Test-Path $candidate) { return $candidate }
     }
     return $null
 }
@@ -84,8 +91,11 @@ if (-not $WorkshopTool -or -not (Test-Path $WorkshopTool)) {
     exit 1
 }
 
-if (-not (Test-Path $ModPath)) {
-    Write-Error "Mod path not found: $ModPath. Deploy/symlink the mod to the X4 extensions folder first."
+if (-not $ModPath) {
+    $ModPath = Find-X4Extension -Name $ModName
+}
+if (-not $ModPath -or -not (Test-Path $ModPath)) {
+    Write-Error "Mod path not found. Deploy/symlink the mod to <SteamLibrary>\steamapps\common\X4 Foundations\extensions\$ModName first, or pass -ModPath '<path>'."
     exit 1
 }
 
@@ -95,9 +105,13 @@ if (-not (Test-Path $contentXml)) {
     exit 1
 }
 
-$previewJpg = Join-Path $ModPath "preview.jpg"
-if (-not $Update -and -not (Test-Path $previewJpg)) {
-    Write-Error "preview.jpg missing at $previewJpg. Required for first publish. Drop a 640x360+ JPG/PNG into the mod folder."
+$previewPath = $null
+foreach ($ext in @("preview.png", "preview.jpg")) {
+    $candidate = Join-Path $ModPath $ext
+    if (Test-Path $candidate) { $previewPath = $candidate; break }
+}
+if (-not $Update -and -not $previewPath) {
+    Write-Error "preview.png/jpg missing in $ModPath. Required for first publish. Drop a 640x360+ JPG/PNG into the mod folder."
     exit 1
 }
 
@@ -114,7 +128,7 @@ if ($Update) {
     & $WorkshopTool update -path $ModPath -buildcat -changenote $ChangeNote
 } else {
     Write-Host "First-publishing Workshop item..." -ForegroundColor Cyan
-    & $WorkshopTool publishx4 -path $ModPath -preview $previewJpg -buildcat
+    & $WorkshopTool publishx4 -path $ModPath -preview $previewPath -buildcat
 }
 
 if ($LASTEXITCODE -ne 0) {
