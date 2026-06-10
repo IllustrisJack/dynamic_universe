@@ -7515,7 +7515,11 @@
 				<cue name="ExecuteOption_VassalDebugGiveCredits" instantiate="true">
 					<conditions><event_cue_signalled/></conditions>
 					<actions>
-						<reward_player money="100000000"/>
+						<!-- reward_player money needs a money-typed value, not a raw
+						     integer. 100000000Cr is the literal with money suffix.
+						     The Cr unit is what every other money path in this file
+						     uses (e.g. broker '$LocCost * 1Cr', coup '$LocCoupPay * 1Cr'). -->
+						<reward_player money="100000000Cr"/>
 						<show_notification priority="1" text="'+100,000,000 Cr (debug)'"/>
 						<signal_cue_instantly cue="md.Simple_Menu_API.Refresh_Menu"/>
 					</actions>
