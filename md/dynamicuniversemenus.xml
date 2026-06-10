@@ -6294,6 +6294,31 @@
 							]"/>
 					</actions>
 				</library>
+				<library name="Library_DAFormatBigCr">
+					<actions>
+						<!-- Input: $LocBCInput (integer/float, raw Cr or virt-Cr).
+						     Output: $LocBCResult (string).
+						     Format:
+						       |val| >= 1B  → "X.Y B"
+						       |val| >= 1M  → "X M"
+						       else         → "X Cr"
+						     Negative values get a "-" prefix, e.g. "-12.3 B".
+						     Caller cleans up $LocBCInput + $LocBCResult after use. -->
+						<set_value name="$LocBCAbs" exact="if $LocBCInput lt 0 then -$LocBCInput else $LocBCInput"/>
+						<set_value name="$LocBCSign" exact="if $LocBCInput lt 0 then '-' else ''"/>
+						<do_if value="$LocBCAbs ge 1000000000">
+							<set_value name="$LocBCResult" exact="'%s%s.%s B'.[$LocBCSign, ($LocBCAbs / 1000000000)i, ($LocBCAbs / 100000000)i % 10]"/>
+						</do_if>
+						<do_elseif value="$LocBCAbs ge 1000000">
+							<set_value name="$LocBCResult" exact="'%s%s M'.[$LocBCSign, ($LocBCAbs / 1000000)i]"/>
+						</do_elseif>
+						<do_else>
+							<set_value name="$LocBCResult" exact="'%s%s Cr'.[$LocBCSign, ($LocBCAbs)i]"/>
+						</do_else>
+						<remove_value name="$LocBCAbs"/>
+						<remove_value name="$LocBCSign"/>
+					</actions>
+				</library>
 				<cue name="ExecuteOption_EnableSimplfied" instantiate="true">
 					<conditions>
 						<event_cue_signalled/>
@@ -6607,7 +6632,16 @@
 								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=4, $colSpan=1, $text=$LocVRowStatus, $color=$DUMVT.$TextRed, $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
 								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=5, $colSpan=3, $text=$DUDVT.$DUVassalTable.{$LocVRow}.$Suzerain.knownname, $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
 								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=8, $colSpan=2, $text='%s: %s'.[{33232474,2718}, $LocVRowH], $color=$LocVRowHColor, $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
-								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=10, $colSpan=3, $text=if $DUDVT.$DUVassalTable.{$LocVRow}.$TributeTotalVirt? then '%s Cr'.[($DUDVT.$DUVassalTable.{$LocVRow}.$TributeTotalVirt)i] else '-', $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
+								<do_if value="@$DUDVT.$DUVassalTable.{$LocVRow}.$TributeTotalVirt">
+									<set_value name="$LocBCInput" exact="$DUDVT.$DUVassalTable.{$LocVRow}.$TributeTotalVirt"/>
+									<include_actions ref="Library_DAFormatBigCr"/>
+									<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=10, $colSpan=3, $text=$LocBCResult, $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
+									<remove_value name="$LocBCInput"/>
+									<remove_value name="$LocBCResult"/>
+								</do_if>
+								<do_else>
+									<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=10, $colSpan=3, $text='-', $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
+								</do_else>
 								<remove_value name="$LocVRowH"/>
 								<remove_value name="$LocVRowHColor"/>
 								<remove_value name="$LocVRowStatus"/>
@@ -6894,7 +6928,15 @@
 							<do_if value="@$DUDVT.$DUFactionTreasury.{$LocDF}.$Worth">
 								<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
 								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=4, $text={33232474,2857}, $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
-								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=5, $colSpan=8, $text='%s Cr (virt: %s)'.[($DUDVT.$DUFactionTreasury.{$LocDF}.$Worth)i, if @$DUDVT.$DUFactionTreasury.{$LocDF}.$VirtBalance then ($DUDVT.$DUFactionTreasury.{$LocDF}.$VirtBalance)i else 0], $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
+								<set_value name="$LocBCInput" exact="$DUDVT.$DUFactionTreasury.{$LocDF}.$Worth"/>
+								<include_actions ref="Library_DAFormatBigCr"/>
+								<set_value name="$LocDFWorthStr" exact="$LocBCResult"/>
+								<set_value name="$LocBCInput" exact="if @$DUDVT.$DUFactionTreasury.{$LocDF}.$VirtualBalance then $DUDVT.$DUFactionTreasury.{$LocDF}.$VirtualBalance else 0"/>
+								<include_actions ref="Library_DAFormatBigCr"/>
+								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=5, $colSpan=8, $text='%s (virt: %s)'.[$LocDFWorthStr, $LocBCResult], $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
+								<remove_value name="$LocDFWorthStr"/>
+								<remove_value name="$LocBCInput"/>
+								<remove_value name="$LocBCResult"/>
 							</do_if>
 							<!-- Politics: vassal of? -->
 							<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
@@ -7259,7 +7301,16 @@
 							<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=5, $colSpan=8, $text=$DUDVT.$DUVassalTable.{$LocV}.$Since, $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
 							<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
 							<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=4, $text={33232474,2728}, $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
-							<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=5, $colSpan=8, $text=if $DUDVT.$DUVassalTable.{$LocV}.$TributeTotalVirt? then '%s Cr'.[($DUDVT.$DUVassalTable.{$LocV}.$TributeTotalVirt)i] else '0 Cr', $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
+							<do_if value="@$DUDVT.$DUVassalTable.{$LocV}.$TributeTotalVirt">
+								<set_value name="$LocBCInput" exact="$DUDVT.$DUVassalTable.{$LocV}.$TributeTotalVirt"/>
+								<include_actions ref="Library_DAFormatBigCr"/>
+								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=5, $colSpan=8, $text=$LocBCResult, $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
+								<remove_value name="$LocBCInput"/>
+								<remove_value name="$LocBCResult"/>
+							</do_if>
+							<do_else>
+								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=5, $colSpan=8, $text='0 Cr', $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
+							</do_else>
 							<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
 							<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=4, $text={33232474,2878}, $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
 							<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=5, $colSpan=8, $text=if $LocV.primaryrace == $LocSuz.primaryrace then {33232474,2879} else {33232474,2797}, $color=if $LocV.primaryrace == $LocSuz.primaryrace then $DUMVT.$TextGreen else $DUMVT.$TextRed, $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
