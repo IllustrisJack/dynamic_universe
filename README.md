@@ -20,7 +20,7 @@ If you're coming from upstream *DeadAir Scripts / Dynamic Universe* (v1.13 / v7.
 
 **New features (this fork only):**
 - **Galactic Politics / Vassal System** — full vassalage mechanic with three vassalize paths (Dynamic War roll, conquest, player broker), tribute, happiness, rebellions, coups, succession, embassies, levies, war exhaustion, coalition rebellions. The headline feature of the fork. See [Modules § Galactic Politics](#galactic-politics-vassal-system).
-- **X4 9.0 RC4 compatibility** — original was last shipped against 7.x. Patcher-side fixes for the 9.0 strict parser (`@expr?` syntax, `<return/>` placement, `find_station space=` required, `keys.list.count` deprecated, etc.), diplomacy API guards (`isdiplomacyexcluded`, Protocol Null), and vanilla shape changes in `aiscripts/order.move.recon.xml` + `md/factionlogic_economy.xml`.
+- **X4 9.0 compatibility** — original was last shipped against 7.x. Patcher-side fixes for the 9.0 strict parser (`@expr?` syntax, `<return/>` placement, `find_station space=` required, `keys.list.count` deprecated, etc.), diplomacy API guards (`isdiplomacyexcluded`, Protocol Null), and vanilla shape changes in `aiscripts/order.move.recon.xml` + `md/factionlogic_economy.xml`.
 - **Faction Dossier** — read-only menu summarizing per-faction sector count, military strength, treasury, vassalage status. Replaces the removed Information Menus with a narrower, vassal-aware view.
 - **Suzerain Presence** — vassal sectors share the suzerain's police authority. Antigone and Holy Order police-patrol jobs extend through ally-relation sectors so policing flows along vassal lines.
 - **Police outsourcing menu** — sell sector police rights to an AI faction for ongoing credit revenue.
@@ -49,7 +49,7 @@ If you're coming from upstream *DeadAir Scripts / Dynamic Universe* (v1.13 / v7.
 
 | Thing | Version |
 |---|---|
-| X4: Foundations | **9.0 RC4** (`<dependency version="900"/>` in `content.xml`) |
+| X4: Foundations | **9.0** (`<dependency version="900"/>` in `content.xml`) |
 | Required dependency | [SirNukes Mod Support APIs](https://www.nexusmods.com/x4foundations/mods/503) (Steam ID `ws_2042901274`) |
 | Optional dependencies | All Egosoft DLCs (split, terran, pirate, boron, timelines), [DeadAir Economy Overhaul](https://www.nexusmods.com/x4foundations/mods/2139) (community-adopted by Chem O'Dun for 9.0 — highly recommended) |
 | Not compatible with | Old standalone versions of DeadAir's Dynamic War, Evolution, Fill, Jobs, Gate |
@@ -196,7 +196,7 @@ docs/                   Architecture, gotchas, design spec, compat principles, m
 
 When reporting a bug, please include:
 
-1. **X4 version** (we target 9.0 RC4 — older versions are not supported).
+1. **X4 version** (we target 9.0 — older versions are not supported).
 2. **DLC list** (split, terran, pirate, boron, timelines).
 3. **Other mods loaded.** Modlist conflicts are responsible for ~80% of "bug" reports.
 4. **A debug log** with the relevant module's `DetailedDebug` toggle enabled (under that module's menu). The log file is `$USERPROFILE/Documents/Egosoft/X4/<userid>/debuglog.txt`. The Self-Check button writes a structured `[DU-CHECK]` block to the player logbook — paste that if vassal-system related.
@@ -214,7 +214,7 @@ Original "Dynamic Universe / Deadair Scripts" © DeadAir, released under GPL v3 
 
 This fork is maintained by **IllustrisJack**, also under **GPL v3** (see [`LICENSE`](LICENSE)). Significant modifications since the original:
 
-- X4 9.0 RC4 compatibility (parser strictness, diplomacy API changes, isdiplomacyexcluded, Protocol Null)
+- X4 9.0 compatibility (parser strictness, diplomacy API changes, isdiplomacyexcluded, Protocol Null)
 - New Galactic Politics / Vassal System (see above)
 - XPath validator toolchain for diff-selector regression checks
 - Removal of submods that didn't fit this fork's scope (Trader Profit, Infestation, Gate, Evolution, God, Fill, Jobs Expeditions, Jobs Smart Sector Tags, Information Menus)

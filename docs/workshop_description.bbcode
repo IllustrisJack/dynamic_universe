@@ -1,5 +1,5 @@
 [h1]Dynamic Universe[/h1]
-A continued fork of DeadAir's [i]Dynamic Universe / Deadair Scripts[/i], maintained for X4: Foundations 9.0. Adds a vassal-state system on top of the original Dynamic War and Dynamic News mechanics. All features are configurable via the in-game mod menu.
+A continued fork of DeadAir's [i]Dynamic Universe / Deadair Scripts (Dynamic War, Dynamic News)[/i], maintained for X4: Foundations 9.0. Adds a vassal-state system on top of the original Dynamic War and Dynamic News mechanics. All features are configurable via the in-game mod menu.
 
 [b]⚠ Galactic Politics (Vassal System) is work-in-progress.[/b] Core flow works in short play sessions; long-running multi-hour balance and edge cases (succession crises, multi-vassal coalitions, war exhaustion exit paths) still need testing in the wild. [b]Please report bugs[/b] — log files with [b]Detailed Debug[/b] enabled are gold. See [b]Source, issues, and license[/b] below for where to file.
 
@@ -10,6 +10,7 @@ A continued fork of DeadAir's [i]Dynamic Universe / Deadair Scripts[/i], maintai
 [*][b]Galactic Politics[/b] [i](new in this fork)[/i] — vassalage on top of vanilla diplomacy. Losing factions can become tributaries instead of being eliminated. Includes garrison fleets, happiness mechanics, rebellions, coups d'état, succession crises, war exhaustion, vassal levies and expeditions, and a player broker menu.
 [/list]
 
+[h1]Galactic Politics[/h1]
 [h2]Vassal system overview[/h2]
 Three ways a vassalage forms:
 [list]
@@ -20,9 +21,11 @@ Three ways a vassalage forms:
 
 Once formed, a vassalage means: a garrison fleet dispatches from the suzerain's shipyard to guard the vassal's HQ sector, an embassy station is built (real economy construction, not spawn-cheated), tribute flows on each Dynamic War tick (half pays out as real credits when you're the suzerain), happiness ticks every ~5 minutes and drains from high tribute or sectors lost. Below 30 happiness rebellions roll, and a successful rebel defects with the garrison and gets a 60-min cooldown.
 
+[b]Plans are to refine and expand the Galactic Politics module over time, let me know what ideas you have![/b]
+
 [h2]Compatibility[/h2]
 [list]
-[*][b]X4 9.0 RC4[/b] required. Older versions are not supported.
+[*][b]X4 9.0+[/b] required. Older versions are not supported.
 [*][b]Required:[/b] [url=https://steamcommunity.com/sharedfiles/filedetails/?id=2042901274]SirNukes Mod Support APIs[/url]
 [*][b]Optional:[/b] all Egosoft DLCs (Split, Terran, Pirate, Boron, Timelines), [url=https://www.nexusmods.com/x4foundations/mods/2139]DeadAir Economy Overhaul[/url]
 [*][b]Diff surface is minimal[/b] — additive xpath patches, no replacement of vanilla library roots. Most mods coexist fine.
@@ -35,6 +38,6 @@ The vassal system applies persistent [code]relation_locked[/code] flags that sur
 [list]
 [*]GitHub: [url=https://github.com/IllustrisJack/dynamic-universe]IllustrisJack/dynamic-universe[/url]
 [*]License: GPL v3 (preserved from upstream).
-[*]Original "Dynamic Universe / Deadair Scripts" © DeadAir, released under GPL v3 in September 2025 with explicit permission to continue.
+[*]Original "Dynamic Universe / Deadair Scripts" © DeadAir, released under GPL v3 in September 2025
 [/list]
 Bug reports and PRs welcome on GitHub. Please include X4 version, DLC list, other mods loaded, and a debug log with the relevant module's [b]Detailed Debug[/b] toggle enabled.

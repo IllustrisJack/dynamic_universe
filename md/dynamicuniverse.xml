@@ -5293,7 +5293,7 @@
 						<set_value name="$LocPass" exact="0"/>
 						<set_value name="$LocFail" exact="0"/>
 						<set_value name="$LocReport" exact="'[DU-CHECK] start @ %s\n'.[player.age]"/>
-						<set_value name="$LocReport" exact="'%sversion: %s\n'.[$LocReport, '9.0-rc4-fork']" operation="set"/>
+						<set_value name="$LocReport" exact="'%sversion: %s\n'.[$LocReport, '9.0-fork']" operation="set"/>
 						<set_value name="$LocReport" exact="'%sVassalEnable=%s GarrisonEnable=%s RespectProtocolNull=%s\n'.[$LocReport, $DUDVT.$DUVassalEnable, $DUDVT.$DUVassalGarrisonEnable, $DUDVT.$DUDynamicWarRespectProtocolNull]" operation="set"/>
 						<set_value name="$LocPN" exact="@md.Diplomacy.Start.ProtocolNull.$ProtocolNullActive"/>
 						<set_value name="$LocReport" exact="'%sProtocolNullActive=%s\n'.[$LocReport, $LocPN]" operation="set"/>

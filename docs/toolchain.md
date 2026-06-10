@@ -68,7 +68,7 @@ When a new X4 version drops:
 ```powershell
 <TOOLCHAIN>/scripts/extract-vanilla.ps1 `
     -X4Install "<X4Install>" `
-    -SnapshotName "9.0_rc4"
+    -SnapshotName "9.0"
 ```
 
 Arguments:
@@ -82,7 +82,7 @@ Arguments:
 The output layout matches mod-relative paths so the validator's lookup is trivial:
 
 ```
-<VANILLA>/9.0_rc4/
+<VANILLA>/9.0/
 ├── aiscripts/
 ├── libraries/
 ├── maps/xu_ep2_universe/
@@ -102,9 +102,9 @@ Expect ~1500 XML files for a filtered snapshot.
 ```powershell
 <TOOLCHAIN>/xpath-validator/target/release/x4-xpath-validator.exe `
     --mod-root  <MOD> `
-    --vanilla   <VANILLA>/9.0_rc4 `
+    --vanilla   <VANILLA>/9.0 `
     --quiet `
-    --json-out  <VANILLA>/_diffs/9.0_rc4_validation.json
+    --json-out  <VANILLA>/_diffs/9.0_validation.json
 ```
 
 Arguments:
