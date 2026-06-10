@@ -181,3 +181,22 @@ A clean run on the current mod is `ok=24 broken=0 missing-vanilla=0 parse-errors
 ## 7. Validator source
 
 The validator lives at <https://github.com/IllustrisJack/xpath-validator>. Build instructions and the full op support matrix are in that repo's README.
+
+---
+
+## 8. Iterating on MD changes in-game
+
+Confirmed by observation: **loading a save from the main menu re-parses MD scripts**. A full X4 process restart is NOT required to pick up MD edits.
+
+Workflow:
+
+1. Edit `md/dynamicuniverse.xml` (or any other MD file).
+2. Make sure the change is on disk at `<X4>/extensions/<modname>/md/...` — if your repo is symlinked into the extensions folder, that's automatic.
+3. In-game: ESC → Main menu → Load save.
+4. The new MD code is active for the loaded session. `event_game_loaded` cues fire against the new code.
+
+Caveats:
+
+- **aiscripts may differ.** Not verified either way. If an `aiscripts/` change doesn't seem to take effect after a save-reload, do a full X4 restart and retest.
+- **New cues parsed on load.** If a new `event_game_loaded` cue you just wrote doesn't fire on save-reload, the parse may have failed silently. Check `debuglog.txt` filtered to `[General]` / `[Scripts]` for parse errors before assuming the cue logic is wrong.
+- **Save state persists.** New on-load handlers (e.g. the vassal-table sanitizer) run against state that was saved before they existed; they can fix things at load time but never at save time.
