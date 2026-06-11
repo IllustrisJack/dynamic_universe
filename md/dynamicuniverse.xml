@@ -3502,7 +3502,7 @@
 						<do_for_each name="$LocV" in="$DUDVT.$DUVassalTable.keys.list">
 							<set_value name="$LocSuz" exact="$DUDVT.$DUVassalTable.{$LocV}.$Suzerain"/>
 							<set_value name="$LocDelta" exact="0.0"/>
-							<!-- Dynamic tribute review: AI suzerains revisit the rate every ~20 minutes per vassal and make a decision-sized step (±1%). Target band shifts up when suzerain is at multiple wars (each extra war past the first adds +1 to the target) so a warring suzerain squeezes vassals for the war chest, which then drains vassal happiness, which then forces more virt-Cr into gifts — self-balancing the aggression. -->
+							<!-- Dynamic tribute review: AI suzerains revisit the rate every ~20 minutes per vassal and make a decision-sized step (±1%). Target band shifts up when suzerain is at multiple wars (each extra war past the first adds +1 to the target) so a warring suzerain squeezes vassals for the war chest, which drives vassal happiness down via the continuous drain + the tribute_resentment event in the lottery — self-balancing pressure. -->
 							<do_if value="$DUDVT.$DUVassalDynamicTributeEnable and @$DUDVT.$DUVassalTable.{$LocV}.$DynamicTribute and ((not @$DUDVT.$DUVassalTable.{$LocV}.$LastTributeReview) or (player.age ge $DUDVT.$DUVassalTable.{$LocV}.$LastTributeReview + ($DUDVT.$DUVassalTributeReviewMinutes)min))">
 								<set_value name="$LocTribTarget" exact="5.0"/>
 								<do_if value="$DUDVT.$DUVassalTable.{$LocV}.$Happiness gt 70">
@@ -3645,37 +3645,38 @@
 							</do_if>
 							<set_value name="$DUDVT.$DUVassalTable.{$LocV}.$LastThreatScore" exact="$LocVOwnMil"/>
 							<remove_value name="$LocVOwnMil"/>
-							<!-- AI auto-gift: AI suzerain spends virtual treasury to buffer an unhappy vassal. Boost is modest (+5) and costs vassal_worth/2000 virt-Cr so a broke suzerain cannot prevent rebellion forever. -->
+							<!-- AI auto-gift: AI suzerain buffers an unhappy vassal. Cost
+							     scales with vassal Worth (vassal_worth/2000); affordability
+							     is gated by suzerain Worth (1% per fire). Smashed suzerain
+							     → low Worth → can't afford → rebellion pressure with real
+							     economic backing. -->
 							<do_if value="$DUDVT.$DUVassalAutoGiftEnable and ($LocSuz != faction.player) and (($DUDVT.$DUVassalTable.{$LocV}.$Happiness + $LocDelta) lt 40) and ($DUDVT.$DUVassalTable.{$LocV}.$Happiness gt 0)">
 								<set_value name="$LocGiftCost" exact="0"/>
 								<do_if value="@$DUDVT.$DUFactionTreasury.{$LocV}.$Worth and $DUDVT.$DUFactionTreasury.{$LocV}.$Worth gt 0">
 									<set_value name="$LocGiftCost" exact="$DUDVT.$DUFactionTreasury.{$LocV}.$Worth / 2000"/>
 								</do_if>
-								<set_value name="$LocSuzVirt" exact="if @$DUDVT.$DUFactionTreasury.{$LocSuz}.$VirtualBalance then $DUDVT.$DUFactionTreasury.{$LocSuz}.$VirtualBalance else 0"/>
-								<do_if value="($LocGiftCost gt 0) and ($LocSuzVirt ge $LocGiftCost)">
-									<do_if value="not $DUDVT.$DUFactionTreasury.{$LocSuz}.$VirtualBalance?">
-										<set_value name="$DUDVT.$DUFactionTreasury.{$LocSuz}" exact="table[]"/>
-										<set_value name="$DUDVT.$DUFactionTreasury.{$LocSuz}.$VirtualBalance" exact="0"/>
-									</do_if>
-									<set_value name="$DUDVT.$DUFactionTreasury.{$LocSuz}.$VirtualBalance" exact="$LocSuzVirt - $LocGiftCost"/>
+								<set_value name="$LocSuzWorth" exact="if @$DUDVT.$DUFactionTreasury.{$LocSuz}.$Worth then $DUDVT.$DUFactionTreasury.{$LocSuz}.$Worth else 0"/>
+								<set_value name="$LocSuzAfford" exact="$LocSuzWorth / 100"/>
+								<do_if value="($LocGiftCost gt 0) and ($LocSuzAfford ge $LocGiftCost)">
 									<set_value name="$LocDelta" exact="5.0" operation="add"/>
 									<set_value name="$DUDVT.$DUVassalTable.{$LocV}.$LastAIGiftAt" exact="player.age"/>
 									<do_if value="$DUDVT.$DUVassalDetailedDebug">
-										<debug_text text="'MOD: DAVassal -- AI auto-gift %s -> %s (cost=%s, suz virt left=%s)'.[$LocSuz, $LocV, $LocGiftCost, $LocSuzVirt - $LocGiftCost]" context="false" filter="scripts"/>
+										<debug_text text="'MOD: DAVassal -- AI auto-gift %s -> %s (cost=%s, suz afford=%s)'.[$LocSuz, $LocV, $LocGiftCost, $LocSuzAfford]" context="false" filter="scripts"/>
 									</do_if>
 								</do_if>
 								<remove_value name="$LocGiftCost"/>
-								<remove_value name="$LocSuzVirt"/>
+								<remove_value name="$LocSuzWorth"/>
+								<remove_value name="$LocSuzAfford"/>
 							</do_if>
 							<do_if value="$DUDVT.$DUVassalFleetGiftEnable and ($LocSuz != faction.player) and ($DUDVT.$DUVassalTable.{$LocV}.$Happiness gt 0)">
 								<set_value name="$LocFGRoll" min="0" max="100"/>
 								<do_if value="$LocFGRoll lt $DUDVT.$DUVassalFleetGiftChance">
 									<set_value name="$LocFGCost" exact="if @$DUDVT.$DUFactionTreasury.{$LocV}.$Worth then $DUDVT.$DUFactionTreasury.{$LocV}.$Worth / 666 else 0"/>
-									<set_value name="$LocFGSuzVirt" exact="if @$DUDVT.$DUFactionTreasury.{$LocSuz}.$VirtualBalance then $DUDVT.$DUFactionTreasury.{$LocSuz}.$VirtualBalance else 0"/>
-									<do_if value="($LocFGCost gt 0) and ($LocFGSuzVirt ge $LocFGCost)">
+									<set_value name="$LocFGSuzWorth" exact="if @$DUDVT.$DUFactionTreasury.{$LocSuz}.$Worth then $DUDVT.$DUFactionTreasury.{$LocSuz}.$Worth else 0"/>
+									<set_value name="$LocFGSuzAfford" exact="$LocFGSuzWorth / 100"/>
+									<do_if value="($LocFGCost gt 0) and ($LocFGSuzAfford ge $LocFGCost)">
 										<find_station name="$LocFGHQ" multiple="false" space="player.galaxy" owner="$LocV" factionheadquarters="true"/>
 										<do_if value="$LocFGHQ">
-											<set_value name="$DUDVT.$DUFactionTreasury.{$LocSuz}.$VirtualBalance" exact="$LocFGSuzVirt - $LocFGCost"/>
 											<set_value name="$LocFleetOwner" exact="$LocV"/>
 											<set_value name="$LocSpawnSector" exact="$LocFGHQ.sector"/>
 											<set_value name="$LocPurposeFaction" exact="$LocSuz"/>
@@ -3700,7 +3701,8 @@
 										<remove_value name="$LocFGHQ"/>
 									</do_if>
 									<remove_value name="$LocFGCost"/>
-									<remove_value name="$LocFGSuzVirt"/>
+									<remove_value name="$LocFGSuzWorth"/>
+									<remove_value name="$LocFGSuzAfford"/>
 								</do_if>
 								<remove_value name="$LocFGRoll"/>
 							</do_if>
@@ -3883,21 +3885,13 @@
 							<set_value name="$LocVassalWorth" exact="$DUDVT.$DUFactionTreasury.{$LocV}.$Worth"/>
 							<set_value name="$LocPct" exact="$DUDVT.$DUVassalTable.{$LocV}.$TributePct"/>
 							<set_value name="$LocTribute" exact="($LocVassalWorth * $LocPct / 100.0)f"/>
-							<!-- Tribute always flows. The earlier guard capped tribute at
-							     the vassal's current $VirtualBalance, but
-							     Library_VassalTreasuryRecomputeWorth seeds new entries
-							     at 0 and nothing else increments the vassal's
-							     $VirtualBalance — so the first tribute tick capped at 0,
-							     no tribute ever flowed to the suzerain, suzerain treasury
-							     stayed at 0, and AI auto-gifts could never fire,
-							     leaving vassals to drain to rebellion unchecked.
-							     The virt-balance is a bookkeeping abstraction (no real
-							     wallet to run out of) — letting the vassal's value
-							     go negative is fine. The suzerain accruing tribute
-							     is what matters for the auto-gift loop. -->
+							<!-- Tribute is happiness/UI-counter only now. The virt-balance
+							     accumulator was theatre (AI factions have unlimited credits
+							     in X4) and inflated unbounded over long runs. AI gift
+							     affordability is gated by suzerain Worth directly; tribute
+							     pressure on the vassal flows through the 'tribute_resentment'
+							     happiness event whose weight scales with $TributePct. -->
 							<do_if value="$LocTribute gt 0">
-								<set_value name="$DUDVT.$DUFactionTreasury.{$LocV}.$VirtualBalance" exact="$LocTribute" operation="subtract"/>
-								<set_value name="$DUDVT.$DUFactionTreasury.{$LocSuz}.$VirtualBalance" exact="$LocTribute" operation="add"/>
 								<set_value name="$DUDVT.$DUVassalTable.{$LocV}.$TributeTotalVirt" exact="$LocTribute" operation="add"/>
 								<set_value name="$DUDVT.$DUVassalTable.{$LocV}.$LastTributePaid" exact="player.age"/>
 								<do_if value="$LocSuz == faction.player">
@@ -4148,15 +4142,17 @@
 						<event_game_loaded/>
 					</conditions>
 					<actions>
+						<!-- One-shot strip of legacy virt-balance fields. The system
+						     no longer accumulates virt tribute; AI gift affordability
+						     is gated on suzerain Worth directly. Saves from pre-rework
+						     builds had $VirtualBalance / $VirtBalance entries that
+						     are now dead state. -->
 						<do_for_each name="$LocTMF" in="$DUDVT.$DUFactionTreasury.keys.list">
-							<do_if value="@$DUDVT.$DUFactionTreasury.{$LocTMF}.$VirtBalance">
-								<do_if value="not @$DUDVT.$DUFactionTreasury.{$LocTMF}.$VirtualBalance">
-									<set_value name="$DUDVT.$DUFactionTreasury.{$LocTMF}.$VirtualBalance" exact="$DUDVT.$DUFactionTreasury.{$LocTMF}.$VirtBalance"/>
-								</do_if>
-								<remove_value name="$DUDVT.$DUFactionTreasury.{$LocTMF}.$VirtBalance"/>
+							<do_if value="@$DUDVT.$DUFactionTreasury.{$LocTMF}.$VirtualBalance">
+								<remove_value name="$DUDVT.$DUFactionTreasury.{$LocTMF}.$VirtualBalance"/>
 							</do_if>
-							<do_if value="@$DUDVT.$DUFactionTreasury.{$LocTMF}.$VirtualBalance and ($DUDVT.$DUFactionTreasury.{$LocTMF}.$VirtualBalance lt 0)">
-								<set_value name="$DUDVT.$DUFactionTreasury.{$LocTMF}.$VirtualBalance" exact="0"/>
+							<do_if value="@$DUDVT.$DUFactionTreasury.{$LocTMF}.$VirtBalance">
+								<remove_value name="$DUDVT.$DUFactionTreasury.{$LocTMF}.$VirtBalance"/>
 							</do_if>
 						</do_for_each>
 						<remove_value name="$LocTMF"/>
@@ -4449,14 +4445,7 @@
 						</do_for_each>
 						<do_if value="not $DUDVT.$DUFactionTreasury.{$LocFaction}?">
 							<set_value name="$DUDVT.$DUFactionTreasury.{$LocFaction}" exact="table[]"/>
-							<set_value name="$DUDVT.$DUFactionTreasury.{$LocFaction}.$VirtualBalance" exact="0"/>
 						</do_if>
-						<!-- Liquidation-basis adjustment. ship.value / station.value
-						     return X4's book value used in trade calcs; real shipyard
-						     sale nets ~50-75% of that. Halve so Worth (and everything
-						     downstream — tribute, gift cost, broker cost) tracks
-						     realistic liquidation, not build-cost inflation. -->
-						<set_value name="$LocWorth" exact="(($LocWorth)f * 0.5f)i"/>
 						<set_value name="$DUDVT.$DUFactionTreasury.{$LocFaction}.$Worth" exact="$LocWorth"/>
 						<set_value name="$DUDVT.$DUFactionTreasury.{$LocFaction}.$WorthCalcAt" exact="player.age"/>
 						<do_if value="$DUDVT.$DUVassalDetailedDebug">
@@ -4549,9 +4538,6 @@
 							<remove_value name="$LocRelTransferTo"/>
 							<remove_value name="$LocRelDestroy"/>
 							<remove_value name="$LocRelKeep"/>
-							<do_if value="@$DUDVT.$DUFactionTreasury.{$LocVassal}.$VirtualBalance and ($DUDVT.$DUFactionTreasury.{$LocVassal}.$VirtualBalance lt 0)">
-								<set_value name="$DUDVT.$DUFactionTreasury.{$LocVassal}.$VirtualBalance" exact="0"/>
-							</do_if>
 							<debug_text text="'MOD: DAVassal -- %s released from %s (%s).'.[$LocVassal, $LocRelSuz, $LocReleaseReason]" context="true" filter="general"/>
 							<set_value name="$LocRelText" exact="'%s'.[{33232474, 2702}].[if $LocVassal == faction.player then player.name else $LocVassal.name, if $LocRelSuz == faction.player then player.name else $LocRelSuz.name, $LocReleaseReason]"/>
 							<show_notification priority="1" text="'%s: %s'.[{33232474, 2700}, $LocRelText]"/>
@@ -5420,7 +5406,7 @@
 						</do_for_each>
 						<debug_text text="'MOD: DAVassal -- $DUFactionTreasury count: %s'.[$DUDVT.$DUFactionTreasury.keys.count]" context="true" filter="error"/>
 						<do_for_each name="$LocF" in="$DUDVT.$DUFactionTreasury.keys.list">
-							<debug_text text="'  %s worth=%s virtBal=%s calcAt=%s'.[$LocF, @$DUDVT.$DUFactionTreasury.{$LocF}.$Worth, @$DUDVT.$DUFactionTreasury.{$LocF}.$VirtualBalance, @$DUDVT.$DUFactionTreasury.{$LocF}.$WorthCalcAt]" context="true" filter="error"/>
+							<debug_text text="'  %s worth=%s calcAt=%s'.[$LocF, @$DUDVT.$DUFactionTreasury.{$LocF}.$Worth, @$DUDVT.$DUFactionTreasury.{$LocF}.$WorthCalcAt]" context="true" filter="error"/>
 						</do_for_each>
 						<debug_text text="'MOD: DAVassal -- ===== End Dump ====='" context="true" filter="error"/>
 					</actions>

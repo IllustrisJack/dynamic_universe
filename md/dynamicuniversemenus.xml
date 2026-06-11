@@ -6938,10 +6938,7 @@
 								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=4, $text={33232474,2857}, $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
 								<set_value name="$LocBCInput" exact="$DUDVT.$DUFactionTreasury.{$LocDF}.$Worth"/>
 								<include_actions ref="Library_DAFormatBigCr"/>
-								<set_value name="$LocDFWorthStr" exact="$LocBCResult"/>
-								<set_value name="$LocBCInput" exact="if @$DUDVT.$DUFactionTreasury.{$LocDF}.$VirtualBalance then $DUDVT.$DUFactionTreasury.{$LocDF}.$VirtualBalance else 0"/>
-								<include_actions ref="Library_DAFormatBigCr"/>
-								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=5, $colSpan=8, $text='%s (virt: %s)'.[$LocDFWorthStr, $LocBCResult], $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
+								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=5, $colSpan=8, $text=$LocBCResult, $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
 								<remove_value name="$LocDFWorthStr"/>
 								<remove_value name="$LocBCInput"/>
 								<remove_value name="$LocBCResult"/>
