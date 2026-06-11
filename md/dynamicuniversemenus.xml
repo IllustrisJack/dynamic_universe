@@ -6645,33 +6645,40 @@
 								<remove_value name="$LocVRowH"/>
 								<remove_value name="$LocVRowHColor"/>
 								<remove_value name="$LocVRowStatus"/>
+								<set_value name="$LocVRowIsMine" exact="$DUDVT.$DUVassalTable.{$LocVRow}.$Suzerain == faction.player"/>
 								<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
-								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Slider" param="table[
-										$col=1, $colSpan=12,
-										$onSliderCellConfirm=ExecuteOption_PoliticsTributePct,
-										$min=0, $minSelect=0, $max=15, $maxSelect=15, $exceedMaxValue=false,
-										$start=$DUDVT.$DUVassalTable.{$LocVRow}.$TributePct, $step=1, $suffix='% tribute',
-										$echo=$LocVRow,
-									]"/>
-								<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
-								<do_if value="player.money ge 5000000">
-									<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
-											$col=1, $colSpan=6,
-											$text=table[$text={33232474,2716}, $color=$DUMVT.$TextGreen, $halign='center'],
-											$highlightColor=$DUMVT.$ButtonHighlight,
-											$onClick=ExecuteOption_PoliticsGift,
-											$onRightClick=ExecuteOption_PoliticsGift,
+								<do_if value="$LocVRowIsMine">
+									<signal_cue_instantly cue="md.Simple_Menu_API.Make_Slider" param="table[
+											$col=1, $colSpan=12,
+											$onSliderCellConfirm=ExecuteOption_PoliticsTributePct,
+											$min=0, $minSelect=0, $max=15, $maxSelect=15, $exceedMaxValue=false,
+											$start=$DUDVT.$DUVassalTable.{$LocVRow}.$TributePct, $step=1, $suffix='% tribute',
 											$echo=$LocVRow,
 										]"/>
 								</do_if>
 								<do_else>
-									<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=6, $halign='center', $text={1015,28}, $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
+									<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=12, $halign='center', $text='%s%% tribute (AI-managed)'.[($DUDVT.$DUVassalTable.{$LocVRow}.$TributePct)i], $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
 								</do_else>
-								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
-										$col=7, $colSpan=6,
-										$text=table[$text={33232474,2719}, $color=$DUMVT.$TextRed, $halign='center'],
-										$highlightColor=$DUMVT.$ButtonHighlight,
-										$onClick=ExecuteOption_PoliticsRelease,
+								<do_if value="$LocVRowIsMine">
+									<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+									<do_if value="player.money ge 5000000">
+										<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
+												$col=1, $colSpan=6,
+												$text=table[$text={33232474,2716}, $color=$DUMVT.$TextGreen, $halign='center'],
+												$highlightColor=$DUMVT.$ButtonHighlight,
+												$onClick=ExecuteOption_PoliticsGift,
+												$onRightClick=ExecuteOption_PoliticsGift,
+												$echo=$LocVRow,
+											]"/>
+									</do_if>
+									<do_else>
+										<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=6, $halign='center', $text={1015,28}, $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
+									</do_else>
+									<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
+											$col=7, $colSpan=6,
+											$text=table[$text={33232474,2719}, $color=$DUMVT.$TextRed, $halign='center'],
+											$highlightColor=$DUMVT.$ButtonHighlight,
+											$onClick=ExecuteOption_PoliticsRelease,
 										$onRightClick=ExecuteOption_PoliticsRelease,
 										$echo=$LocVRow,
 									]"/>
@@ -6686,20 +6693,22 @@
 										$echo=$LocVRow,
 										$mouseOverText={33232474,2799},
 									]"/>
-								<do_if value="$DUDVT.$DUVassalLevyEnable and ($DUDVT.$DUVassalTable.{$LocVRow}.$Suzerain == faction.player) and ($DUDVT.$DUVassalTable.{$LocVRow}.$Happiness gt 30)">
-									<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
-											$col=9, $colSpan=4,
-											$text=table[$text={33232474,2887}, $color=$DUMVT.$TextGreen, $halign='center'],
-											$highlightColor=$DUMVT.$ButtonHighlight,
-											$mouseOverText={33232474,2888},
-											$onClick=ExecuteOption_PoliticsSummonLevy,
-											$onRightClick=ExecuteOption_PoliticsSummonLevy,
-											$echo=$LocVRow,
-										]"/>
+									<do_if value="$DUDVT.$DUVassalLevyEnable and ($DUDVT.$DUVassalTable.{$LocVRow}.$Happiness gt 30)">
+										<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
+												$col=9, $colSpan=4,
+												$text=table[$text={33232474,2887}, $color=$DUMVT.$TextGreen, $halign='center'],
+												$highlightColor=$DUMVT.$ButtonHighlight,
+												$mouseOverText={33232474,2888},
+												$onClick=ExecuteOption_PoliticsSummonLevy,
+												$onRightClick=ExecuteOption_PoliticsSummonLevy,
+												$echo=$LocVRow,
+											]"/>
+									</do_if>
+									<do_else>
+										<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=9, $colSpan=4, $text='', $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
+									</do_else>
 								</do_if>
-								<do_else>
-									<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=9, $colSpan=4, $text='', $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
-								</do_else>
+								<remove_value name="$LocVRowIsMine"/>
 							</do_for_each>
 						</do_if>
 						<do_else>
@@ -7037,7 +7046,7 @@
 							<remove_value name="$LocCoupSh"/>
 							<do_for_each name="$LocCoupV" in="$DUDVT.$DUVassalTable.keys.list">
 								<set_value name="$LocCoupOldSuz" exact="$DUDVT.$DUVassalTable.{$LocCoupV}.$Suzerain"/>
-								<do_if value="($LocCoupOldSuz != $LocCoupNewSuz) and ($LocCoupV != $LocCoupNewSuz) and ($LocCoupNewSuz != faction.player) and ($LocCoupOldSuz != faction.player) and (not $LocCoupNewSuz.isdiplomacyexcluded.{$LocCoupV})">
+								<do_if value="($LocCoupOldSuz != $LocCoupNewSuz) and ($LocCoupV != $LocCoupNewSuz) and ($LocCoupNewSuz != faction.player) and ($LocCoupOldSuz != faction.player) and (not $LocCoupNewSuz.isdiplomacyexcluded.{$LocCoupV}) and (not $DUDVT.$DUDynamicWarPermaExcludedFactions.indexof.{$LocCoupNewSuz}) and (not $DUDVT.$DUDynamicWarDisabledFactions.indexof.{$LocCoupNewSuz}) and ($LocCoupNewSuz != faction.yaki) and ($LocCoupNewSuz != faction.scaleplate)">
 									<set_value name="$LocCoupAnyShown" exact="true"/>
 									<set_value name="$LocCoupOldSuzBloc" exact="0"/>
 									<find_ship_by_true_owner name="$LocCoupOSShips" multiple="true" faction="$LocCoupOldSuz" space="player.galaxy" masstraffic="false" class="[class.ship_xl, class.ship_l, class.ship_m, class.ship_s]" primarypurpose="purpose.fight"/>
@@ -7319,48 +7328,55 @@
 							<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
 							<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=4, $text={33232474,2878}, $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
 							<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=5, $colSpan=8, $text=if $LocV.primaryrace == $LocSuz.primaryrace then {33232474,2879} else {33232474,2797}, $color=if $LocV.primaryrace == $LocSuz.primaryrace then $DUMVT.$TextGreen else $DUMVT.$TextRed, $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
-							<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
-							<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=4, $text={33232474,2798}, $mouseOverText={33232474,2799}, $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
-							<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
-									$col=5, $colSpan=8,
-									$text=table[$text=if @$DUDVT.$DUVassalTable.{$LocV}.$DynamicTribute then {1001,4825} else {1001,8942}, $color=if @$DUDVT.$DUVassalTable.{$LocV}.$DynamicTribute then $DUMVT.$TextGreen else $DUMVT.$TextRed, $halign='center'],
-									$highlightColor=$DUMVT.$ButtonHighlight,
-									$onClick=ExecuteOption_PoliticsDynamicTribute,
-									$onRightClick=ExecuteOption_PoliticsDynamicTribute,
-									$echo=$LocV,
-									$mouseOverText={33232474,2799},
-								]"/>
-							<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
-							<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=4, $text={33232474,2717}, $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
-							<signal_cue_instantly cue="md.Simple_Menu_API.Make_Slider" param="table[
-									$col=5, $colSpan=8,
-									$onSliderCellConfirm=ExecuteOption_PoliticsTributePct,
-									$min=0, $minSelect=0, $max=15, $maxSelect=15, $exceedMaxValue=false,
-									$start=$DUDVT.$DUVassalTable.{$LocV}.$TributePct, $step=1, $suffix='%',
-									$echo=$LocV,
-								]"/>
-							<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
-							<do_if value="player.money ge 5000000">
+							<do_if value="$LocSuz == faction.player">
+								<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=4, $text={33232474,2798}, $mouseOverText={33232474,2799}, $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
 								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
-										$col=1, $colSpan=6,
-										$text=table[$text='%s (5 000 000 Cr)'.[{33232474,2716}], $color=$DUMVT.$TextGreen, $halign='center'],
+										$col=5, $colSpan=8,
+										$text=table[$text=if @$DUDVT.$DUVassalTable.{$LocV}.$DynamicTribute then {1001,4825} else {1001,8942}, $color=if @$DUDVT.$DUVassalTable.{$LocV}.$DynamicTribute then $DUMVT.$TextGreen else $DUMVT.$TextRed, $halign='center'],
 										$highlightColor=$DUMVT.$ButtonHighlight,
-										$onClick=ExecuteOption_PoliticsGift,
-										$onRightClick=ExecuteOption_PoliticsGift,
+										$onClick=ExecuteOption_PoliticsDynamicTribute,
+										$onRightClick=ExecuteOption_PoliticsDynamicTribute,
+										$echo=$LocV,
+										$mouseOverText={33232474,2799},
+									]"/>
+								<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=4, $text={33232474,2717}, $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
+								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Slider" param="table[
+										$col=5, $colSpan=8,
+										$onSliderCellConfirm=ExecuteOption_PoliticsTributePct,
+										$min=0, $minSelect=0, $max=15, $maxSelect=15, $exceedMaxValue=false,
+										$start=$DUDVT.$DUVassalTable.{$LocV}.$TributePct, $step=1, $suffix='%',
+										$echo=$LocV,
+									]"/>
+								<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+								<do_if value="player.money ge 5000000">
+									<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
+											$col=1, $colSpan=6,
+											$text=table[$text='%s (5 000 000 Cr)'.[{33232474,2716}], $color=$DUMVT.$TextGreen, $halign='center'],
+											$highlightColor=$DUMVT.$ButtonHighlight,
+											$onClick=ExecuteOption_PoliticsGift,
+											$onRightClick=ExecuteOption_PoliticsGift,
+											$echo=$LocV,
+										]"/>
+								</do_if>
+								<do_else>
+									<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=6, $halign='center', $text={1015,28}, $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
+								</do_else>
+								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
+										$col=7, $colSpan=6,
+										$text=table[$text={33232474,2719}, $color=$DUMVT.$TextRed, $halign='center'],
+										$highlightColor=$DUMVT.$ButtonHighlight,
+										$onClick=ExecuteOption_PoliticsRelease,
+										$onRightClick=ExecuteOption_PoliticsRelease,
 										$echo=$LocV,
 									]"/>
 							</do_if>
 							<do_else>
-								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=6, $halign='center', $text={1015,28}, $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
+								<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=1, $colSpan=4, $text={33232474,2717}, $cellBGColor=$DUMVT.$BodyBackgroundBright]"/>
+								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Text" param="table[$col=5, $colSpan=8, $text='%s%% (AI-managed)'.[($DUDVT.$DUVassalTable.{$LocV}.$TributePct)i], $cellBGColor=$DUMVT.$BodyBackgroundDark]"/>
 							</do_else>
-							<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
-									$col=7, $colSpan=6,
-									$text=table[$text={33232474,2719}, $color=$DUMVT.$TextRed, $halign='center'],
-									$highlightColor=$DUMVT.$ButtonHighlight,
-									$onClick=ExecuteOption_PoliticsRelease,
-									$onRightClick=ExecuteOption_PoliticsRelease,
-									$echo=$LocV,
-								]"/>
 							<do_if value="$DUDVT.$DUVassalLevyEnable and ($LocSuz == faction.player) and ($DUDVT.$DUVassalTable.{$LocV}.$Happiness gt 30)">
 								<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
 								<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
