@@ -75,7 +75,7 @@ Within `$DUDVT`, feature-specific variables are prefixed with the feature short 
 | `$DUDynFav*` | Dynamic Favors |
 | `$DUBP*` | Blueprint Analysis |
 | `$DUVassal*` | Vassal System (Galactic Politics) |
-| `$DUFactionTreasury` | Per-vassal virtual treasury |
+| `$DUFactionTreasury` | Per-faction cached Worth (ship.value + station.value sum) |
 | `$DURebellionLog` | Recent-rebellion cooldown ledger |
 | `$DUPoliceContract`, `$DUPoliceOutsourcing*` | Police Outsourcing |
 | `$DURelFix*` | Relations-fix loop (DW relation capping) |
@@ -241,7 +241,7 @@ The mod uses xpath diffs in `libraries/*.xml`, `aiscripts/*.xml`, `maps/*.xml`, 
 The mod expects:
 - `Simple_Menu_API` (Sir Nukes' framework) — required, used for all UI menus
 - `ego_dlc_split`, `ego_dlc_terran`, `ego_dlc_pirate`, `ego_dlc_boron`, `ego_dlc_timelines` — optional but supported
-- `DeadAir_Eco` — optional; Vassal treasury → God tie-in (chunk 6) functions whether or not Eco is present, since it operates on the mod's own God system
+- `DeadAir_Eco` — optional. (Note: the "virtual treasury → God expansion rate" tie-in originally scoped under chunk 6 was never wired in live code; the field stayed reserved.)
 
 ---
 

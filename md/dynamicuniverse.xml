@@ -3661,6 +3661,9 @@
 										<debug_text text="'MOD: DAVassal -- AI auto-gift %s -> %s (cost=%s, suz afford=%s)'.[$LocSuz, $LocV, $LocGiftCost, $LocSuzAfford]" context="false" filter="scripts"/>
 									</do_if>
 								</do_if>
+								<do_elseif value="$DUDVT.$DUVassalDetailedDebug and ($LocGiftCost gt 0)">
+									<debug_text text="'MOD: DAVassal -- AI auto-gift skip %s -> %s: cost=%s exceeds suz afford=%s (1%% of Worth)'.[$LocSuz, $LocV, $LocGiftCost, $LocSuzAfford]" context="false" filter="scripts"/>
+								</do_elseif>
 								<remove_value name="$LocGiftCost"/>
 								<remove_value name="$LocSuzWorth"/>
 								<remove_value name="$LocSuzAfford"/>
@@ -3673,11 +3676,17 @@
 								<set_value name="$LocFGLast" exact="if @$DUDVT.$DUVassalTable.{$LocV}.$LastFleetGiftAt then $DUDVT.$DUVassalTable.{$LocV}.$LastFleetGiftAt else 0s"/>
 								<set_value name="$LocFGSkip" exact="player.age lt $LocFGLast + ($DUDVT.$DUVassalFleetGiftCooldownMinutes)min"/>
 								<remove_value name="$LocFGLast"/>
+								<do_if value="$LocFGSkip and $DUDVT.$DUVassalDetailedDebug">
+									<debug_text text="'MOD: DAVassal -- fleet-gift skip %s: cooldown (%smin window)'.[$LocV, $DUDVT.$DUVassalFleetGiftCooldownMinutes]" context="false" filter="scripts"/>
+								</do_if>
 								<set_value name="$LocFGRoll" min="0" max="100"/>
 								<do_if value="(not $LocFGSkip) and ($LocFGRoll lt $DUDVT.$DUVassalFleetGiftChance)">
 									<set_value name="$LocFGCost" exact="if @$DUDVT.$DUFactionTreasury.{$LocV}.$Worth then $DUDVT.$DUFactionTreasury.{$LocV}.$Worth / 666 else 0"/>
 									<set_value name="$LocFGSuzWorth" exact="if @$DUDVT.$DUFactionTreasury.{$LocSuz}.$Worth then $DUDVT.$DUFactionTreasury.{$LocSuz}.$Worth else 0"/>
 									<set_value name="$LocFGSuzAfford" exact="$LocFGSuzWorth / 100"/>
+									<do_if value="$DUDVT.$DUVassalDetailedDebug and ($LocFGCost gt 0) and ($LocFGSuzAfford lt $LocFGCost)">
+										<debug_text text="'MOD: DAVassal -- fleet-gift skip %s -> %s: cost=%s exceeds suz afford=%s'.[$LocSuz, $LocV, $LocFGCost, $LocFGSuzAfford]" context="false" filter="scripts"/>
+									</do_if>
 									<do_if value="($LocFGCost gt 0) and ($LocFGSuzAfford ge $LocFGCost)">
 										<find_station name="$LocFGHQ" multiple="false" space="player.galaxy" owner="$LocV" factionheadquarters="true"/>
 										<do_if value="$LocFGHQ">
@@ -3727,6 +3736,9 @@
 								     otherwise — log spam under tick spam. -->
 								<set_value name="$LocAILLast" exact="if @$DUDVT.$DUVassalTable.{$LocV}.$LastLevyAt then $DUDVT.$DUVassalTable.{$LocV}.$LastLevyAt else 0s"/>
 								<set_value name="$LocAILSkip" exact="player.age lt $LocAILLast + ($DUDVT.$DUVassalLevyCooldownMinutes)min"/>
+								<do_if value="$LocAILSkip and $DUDVT.$DUVassalDetailedDebug">
+									<debug_text text="'MOD: DAVassal -- levy skip %s: cooldown (%smin window)'.[$LocV, $DUDVT.$DUVassalLevyCooldownMinutes]" context="false" filter="scripts"/>
+								</do_if>
 								<remove_value name="$LocAILLast"/>
 								<set_value name="$LocAILSuzWar" exact="false"/>
 								<get_factions_by_tag tag="tag.claimspace" result="$LocAILClaim"/>
@@ -5111,6 +5123,9 @@
 								     $DUVassalExpeditionCooldownMinutes ago. -->
 								<set_value name="$LocEVLast" exact="if @$DUDVT.$DUVassalTable.{$LocEV}.$LastExpeditionAt then $DUDVT.$DUVassalTable.{$LocEV}.$LastExpeditionAt else 0s"/>
 								<do_if value="player.age lt $LocEVLast + ($DUDVT.$DUVassalExpeditionCooldownMinutes)min">
+									<do_if value="$DUDVT.$DUVassalDetailedDebug">
+										<debug_text text="'MOD: DAVassal -- expedition skip %s: cooldown (last=%s, %s/%smin left)'.[$LocEV, $LocEVLast, ($LocEVLast + ($DUDVT.$DUVassalExpeditionCooldownMinutes)min - player.age), $DUDVT.$DUVassalExpeditionCooldownMinutes]" context="false" filter="scripts"/>
+									</do_if>
 									<remove_value name="$LocEVLast"/>
 									<continue/>
 								</do_if>

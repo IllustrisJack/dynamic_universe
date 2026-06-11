@@ -5,6 +5,12 @@
 
 This is the v1 design for the vassal + rebellion system. Section 0 catalogs everything that was changed, added, or rebalanced after v1 went in — the original spec sections (1+) describe the v1 baseline and are kept for historical reference. When the two disagree, **section 0 is authoritative**.
 
+> ### ⚠ Major architectural drift since v1
+>
+> The **virtual treasury / virt-balance accumulator** described throughout sections 1.x, 2.3, E2, and E2-tie-in was **removed entirely** in a later refactor. Tribute no longer moves credits between virtual ledgers; `$DUFactionTreasury` retains only the live-computed `$Worth` (sum of ship.value + station.value, recomputed per tick). AI gift affordability is gated on suzerain Worth directly (cost ≤ 1% of Worth per fire). The chunk-6 "virtual treasury → God expansion rate" tie-in was never wired in live code.
+>
+> Tribute is now a happiness lever + player-payout (5 M Cr/tick cap when player is suzerain). For the as-built behavior, see `README.md § Galactic Politics` and §0 entries below.
+
 ---
 
 ## 0. Post-v1 changes log

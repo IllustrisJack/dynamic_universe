@@ -80,7 +80,7 @@ Or check after the fact with `-Tail 500` and `-ErrorsOnly` flags.
 | Button | Effect |
 |---|---|
 | Reset Cooldowns/Grace | Zero `$CooldownUntil` and `$GraceUntil` on every rebellion log entry |
-| Clear Treasury Data | Wipe `$DUFactionTreasury` (resets all virtual balances + worth caches) |
+| Clear Treasury Data | Wipe `$DUFactionTreasury` (clears cached Worth — refilled on next tribute tick) |
 | Clear Rebellion Log | Wipe `$DURebellionLog` |
 | Dump State to Logbook | Full structured dump of vassal table, rebellion log, treasury |
 

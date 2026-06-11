@@ -21,10 +21,10 @@ Each entry says: what it does, why it was added, and when it's safe to remove.
 **Why:** Added when Suzerain Presence + the police-authority transfer shipped. Pre-feature saves had vassal entries with no police snapshot. Pre-Teladi-fix saves had vassals routed to suzerain directly instead of suzerain.policefaction (so Ministry never picked up Teladi-vassal sectors).
 **Remove when:** Never (handles the menu-toggle re-application path too — same cue is signalled from the toggle handler).
 
-### `EventVassalTreasuryMigrate` *(new this session)*
-**What:** On game load, for each treasury entry: if a stale `$VirtBalance` field exists, copy its value to `$VirtualBalance` (when the latter is missing) then delete `$VirtBalance`.
-**Why:** Two field names were used interchangeably across the codebase (`$VirtBalance` in AI auto-gift + fleet gift, `$VirtualBalance` in tribute tick). Saves from before the unification could have stale `$VirtBalance` rows that the runtime no longer reads.
-**Remove when:** Once enough time has passed that no player is loading a pre-unification save. Realistically: when this mod ships its first release tag, drop this cue.
+### `EventVassalTreasuryMigrate`
+**What:** On game load, walks `$DUFactionTreasury` entries and removes the legacy `$VirtualBalance` and `$VirtBalance` fields.
+**Why:** The virt-balance accumulator was removed entirely (refactor: AI-suzerain credit transfers are theatre in X4, the ledger inflated unbounded over long runs, and auto-gift affordability is now gated on suzerain Worth directly). Pre-rework saves had `$VirtualBalance` rows that the runtime no longer references.
+**Remove when:** Once no pre-rework save is in play. Drop in a follow-up release.
 
 ### Obsolete-key cleanup in `LibraryCheckVassalVariables`
 **What:** `<do_if value="@$X"><remove_value name="$X"/></do_if>` for `$DUWarExhaustionTracker`, `$DUVassalWarExhaustionHoursThreshold`, `$DUVassalWarExhaustionSectorLossThreshold`.
