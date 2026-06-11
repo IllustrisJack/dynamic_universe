@@ -19,7 +19,9 @@ Three ways a vassalage forms:
 [*][b]Player broker[/b] — pay credits to install a faction as your tributary. Cost scales with vassal worth, suzerain military strength, and hostility multiplier.
 [/list]
 
-Once formed, a vassalage means: a garrison fleet dispatches from the suzerain's shipyard to guard the vassal's HQ sector, an embassy station is built (real economy construction, not spawn-cheated), tribute flows on each Dynamic War tick (half pays out as real credits when you're the suzerain), happiness ticks every ~5 minutes and drains from high tribute or sectors lost. Below 30 happiness rebellions roll, and a successful rebel defects with the garrison and gets a 60-min cooldown.
+Once formed, a vassalage means: a garrison fleet dispatches from the suzerain's shipyard to guard the vassal's HQ sector, an embassy station is built (real economy construction, not spawn-cheated), and tribute pressure ticks each interval. When you're the suzerain you pocket up to 5M Cr per tick as real credits. For AI-AI vassalages tribute is a happiness lever, not a credit transfer (AI factions have unlimited Cr in X4, so a virtual ledger would be theatre).
+
+Happiness ticks every ~5 minutes. Two pressure paths run in parallel: a continuous drain scaled by tribute %, and a 25-min event lottery with named events — cultural exchange, trade boom, political scandal, tribute resentment, wartime strain. AI suzerains auto-gift unhappy vassals to stabilize them — affordability is gated by the suzerain's own Worth (1% of asset value per fire), so a smashed suzerain genuinely can't keep buying off rebellion. Below 30 happiness rebellions roll; successful rebels defect with the garrison and get a 60-min cooldown.
 
 [b]Plans are to refine and expand the Galactic Politics module over time, let me know what ideas you have![/b]
 
