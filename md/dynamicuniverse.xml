@@ -118,6 +118,8 @@
 				<set_value name="$DUDVT.$DUVassalExpeditionChance" exact="20"/>
 				<set_value name="$DUDVT.$DUVassalExpeditionDurationMinutes" exact="30"/>
 				<set_value name="$DUDVT.$DUVassalExpeditionCooldownMinutes" exact="60"/>
+				<set_value name="$DUDVT.$DUVassalFleetGiftCooldownMinutes" exact="60"/>
+				<set_value name="$DUDVT.$DUVassalLevyCooldownMinutes" exact="30"/>
 				<set_value name="$DUDVT.$DUVassalGarrisonSectorCount" exact="3"/>
 				<set_value name="$DUDVT.$DUVassalGarrisonReinforceEnable" exact="true"/>
 				<set_value name="$DUDVT.$DUVassalGarrisonReinforceThresholdPct" exact="50"/>
@@ -3664,8 +3666,15 @@
 								<remove_value name="$LocSuzAfford"/>
 							</do_if>
 							<do_if value="$DUDVT.$DUVassalFleetGiftEnable and ($LocSuz != faction.player) and ($DUDVT.$DUVassalTable.{$LocV}.$Happiness gt 0)">
+								<!-- Per-vassal fleet-gift cooldown: same shape as the
+								     expedition cooldown — without it, rapid tick-spam
+								     produced one garrison spawn per successful roll
+								     per tick → dozens of ship fleets at one timestamp. -->
+								<set_value name="$LocFGLast" exact="if @$DUDVT.$DUVassalTable.{$LocV}.$LastFleetGiftAt then $DUDVT.$DUVassalTable.{$LocV}.$LastFleetGiftAt else 0s"/>
+								<set_value name="$LocFGSkip" exact="player.age lt $LocFGLast + ($DUDVT.$DUVassalFleetGiftCooldownMinutes)min"/>
+								<remove_value name="$LocFGLast"/>
 								<set_value name="$LocFGRoll" min="0" max="100"/>
-								<do_if value="$LocFGRoll lt $DUDVT.$DUVassalFleetGiftChance">
+								<do_if value="(not $LocFGSkip) and ($LocFGRoll lt $DUDVT.$DUVassalFleetGiftChance)">
 									<set_value name="$LocFGCost" exact="if @$DUDVT.$DUFactionTreasury.{$LocV}.$Worth then $DUDVT.$DUFactionTreasury.{$LocV}.$Worth / 666 else 0"/>
 									<set_value name="$LocFGSuzWorth" exact="if @$DUDVT.$DUFactionTreasury.{$LocSuz}.$Worth then $DUDVT.$DUFactionTreasury.{$LocSuz}.$Worth else 0"/>
 									<set_value name="$LocFGSuzAfford" exact="$LocFGSuzWorth / 100"/>
@@ -3682,6 +3691,17 @@
 											<remove_value name="$LocSpawnSector"/>
 											<remove_value name="$LocFleetOwner"/>
 											<do_if value="$LocSpawnedShips.count gt 0">
+												<!-- Stamp cooldown + track ships so the debug
+												     'Kill All Expedition Ships' button can also
+												     wipe runaway aid spawns. -->
+												<set_value name="$DUDVT.$DUVassalTable.{$LocV}.$LastFleetGiftAt" exact="player.age"/>
+												<do_if value="not @$DUDVT.$DUVassalTable.{$LocV}.$AidFleets">
+													<set_value name="$DUDVT.$DUVassalTable.{$LocV}.$AidFleets" exact="[]"/>
+												</do_if>
+												<do_for_each name="$LocAidSh" in="$LocSpawnedShips">
+													<append_to_list name="$DUDVT.$DUVassalTable.{$LocV}.$AidFleets" exact="$LocAidSh"/>
+												</do_for_each>
+												<remove_value name="$LocAidSh"/>
 												<set_value name="$LocDelta" exact="$DUDVT.$DUVassalFleetGiftHappinessBoost" operation="add"/>
 												<set_value name="$LocFGText" exact="'%s'.[{33232474, 2885}].[(if $LocSuz == faction.player then player.name else $LocSuz.name), (if $LocV == faction.player then player.name else $LocV.name), $LocSpawnedShips.count]"/>
 												<show_notification priority="2" text="'%s: %s'.[{33232474, 2700}, $LocFGText]"/>
@@ -3700,8 +3720,14 @@
 									<remove_value name="$LocFGSuzAfford"/>
 								</do_if>
 								<remove_value name="$LocFGRoll"/>
+								<remove_value name="$LocFGSkip"/>
 							</do_if>
 							<do_if value="$DUDVT.$DUVassalAILevyEnable and ($LocSuz != faction.player) and ($DUDVT.$DUVassalTable.{$LocV}.$Happiness ge 40)">
+								<!-- Per-vassal levy cooldown. Re-orders happen each tick
+								     otherwise — log spam under tick spam. -->
+								<set_value name="$LocAILLast" exact="if @$DUDVT.$DUVassalTable.{$LocV}.$LastLevyAt then $DUDVT.$DUVassalTable.{$LocV}.$LastLevyAt else 0s"/>
+								<set_value name="$LocAILSkip" exact="player.age lt $LocAILLast + ($DUDVT.$DUVassalLevyCooldownMinutes)min"/>
+								<remove_value name="$LocAILLast"/>
 								<set_value name="$LocAILSuzWar" exact="false"/>
 								<get_factions_by_tag tag="tag.claimspace" result="$LocAILClaim"/>
 								<do_for_each name="$LocAILOther" in="$LocAILClaim">
@@ -3712,11 +3738,12 @@
 								</do_for_each>
 								<remove_value name="$LocAILClaim"/>
 								<remove_value name="$LocAILOther"/>
-								<do_if value="$LocAILSuzWar">
+								<do_if value="$LocAILSuzWar and (not $LocAILSkip)">
 									<set_value name="$LocAILRoll" min="0" max="100"/>
 									<do_if value="$LocAILRoll lt $DUDVT.$DUVassalAILevyChance">
 										<find_station name="$LocAILSuzHQ" multiple="false" space="player.galaxy" owner="$LocSuz" factionheadquarters="true"/>
 										<do_if value="$LocAILSuzHQ">
+											<set_value name="$DUDVT.$DUVassalTable.{$LocV}.$LastLevyAt" exact="player.age"/>
 											<signal_cue_instantly cue="EventVassalLevyDispatch" param="[$LocV, $LocAILSuzHQ.sector]"/>
 										</do_if>
 										<remove_value name="$LocAILSuzHQ"/>
@@ -3724,6 +3751,7 @@
 									<remove_value name="$LocAILRoll"/>
 								</do_if>
 								<remove_value name="$LocAILSuzWar"/>
+								<remove_value name="$LocAILSkip"/>
 							</do_if>
 							<set_value name="$LocDelta" exact="[[$LocDelta, -15.0].max, 8.0].min"/>
 							<set_value name="$LocOldHappiness" exact="$DUDVT.$DUVassalTable.{$LocV}.$Happiness"/>
@@ -5432,13 +5460,13 @@
 						<event_cue_signalled/>
 					</conditions>
 					<actions>
-						<!-- Emergency wipe: iterate every vassal's $Expeditions list,
-						     destroy every still-alive ship, clear the list. Used to
-						     clean up a runaway spawn (e.g. debug "Run All Ticks" before
-						     the cooldown was in place left hundreds of ships orphaned
-						     and tanked frame rate). -->
+						<!-- Emergency wipe of MD-spawned vassal ships: expeditions
+						     ($Expeditions per-vassal list) + fleet-gift aid fleets
+						     ($AidFleets per-vassal list). Used to clean up runaway
+						     spawns from debug 'Run All Ticks' before cooldowns landed. -->
 						<set_value name="$LocKilled" exact="0"/>
 						<do_for_each name="$LocKEV" in="$DUDVT.$DUVassalTable.keys.list">
+							<!-- Expeditions: list of [ships, sector, expires]. -->
 							<do_if value="$DUDVT.$DUVassalTable.{$LocKEV}.$Expeditions? and ($DUDVT.$DUVassalTable.{$LocKEV}.$Expeditions.count gt 0)">
 								<do_for_each name="$LocKEVE" in="$DUDVT.$DUVassalTable.{$LocKEV}.$Expeditions">
 									<do_for_each name="$LocKEVS" in="$LocKEVE.{1}">
@@ -5451,12 +5479,25 @@
 								<set_value name="$DUDVT.$DUVassalTable.{$LocKEV}.$Expeditions" exact="[]"/>
 								<set_value name="$DUDVT.$DUVassalTable.{$LocKEV}.$LastExpeditionAt" exact="0s"/>
 							</do_if>
+							<!-- Aid fleets: flat list of ships. -->
+							<do_if value="@$DUDVT.$DUVassalTable.{$LocKEV}.$AidFleets and ($DUDVT.$DUVassalTable.{$LocKEV}.$AidFleets.count gt 0)">
+								<do_for_each name="$LocKAS" in="$DUDVT.$DUVassalTable.{$LocKEV}.$AidFleets">
+									<do_if value="@$LocKAS and $LocKAS.exists">
+										<destroy_object object="$LocKAS" explosion="false"/>
+										<set_value name="$LocKilled" exact="1" operation="add"/>
+									</do_if>
+								</do_for_each>
+								<set_value name="$DUDVT.$DUVassalTable.{$LocKEV}.$AidFleets" exact="[]"/>
+								<set_value name="$DUDVT.$DUVassalTable.{$LocKEV}.$LastFleetGiftAt" exact="0s"/>
+							</do_if>
+							<set_value name="$DUDVT.$DUVassalTable.{$LocKEV}.$LastLevyAt" exact="0s"/>
 						</do_for_each>
 						<remove_value name="$LocKEV"/>
 						<remove_value name="$LocKEVE"/>
 						<remove_value name="$LocKEVS"/>
-						<show_notification priority="2" text="'Debug: destroyed %s expedition ship(s) across all vassals.'.[$LocKilled]"/>
-						<debug_text text="'MOD: DAVassal -- Debug kill expeditions: %s ships destroyed.'.[$LocKilled]" context="true" filter="general"/>
+						<remove_value name="$LocKAS"/>
+						<show_notification priority="2" text="'Debug: destroyed %s vassal-spawned ship(s) (expeditions + aid fleets).'.[$LocKilled]"/>
+						<debug_text text="'MOD: DAVassal -- Debug kill expeditions+aid: %s ships destroyed.'.[$LocKilled]" context="true" filter="general"/>
 						<remove_value name="$LocKilled"/>
 					</actions>
 				</cue>
@@ -5893,6 +5934,14 @@
 						</do_if>
 						<do_if value="(not $DUDVT.$DUVassalExpeditionCooldownMinutes?) or (not ($DUDVT.$DUVassalExpeditionCooldownMinutes ge 0))">
 							<set_value name="$DUDVT.$DUVassalExpeditionCooldownMinutes" exact="60"/>
+							<set_value name="$MissingVarCount" exact="1" operation="add"/>
+						</do_if>
+						<do_if value="(not $DUDVT.$DUVassalFleetGiftCooldownMinutes?) or (not ($DUDVT.$DUVassalFleetGiftCooldownMinutes ge 0))">
+							<set_value name="$DUDVT.$DUVassalFleetGiftCooldownMinutes" exact="60"/>
+							<set_value name="$MissingVarCount" exact="1" operation="add"/>
+						</do_if>
+						<do_if value="(not $DUDVT.$DUVassalLevyCooldownMinutes?) or (not ($DUDVT.$DUVassalLevyCooldownMinutes ge 0))">
+							<set_value name="$DUDVT.$DUVassalLevyCooldownMinutes" exact="30"/>
 							<set_value name="$MissingVarCount" exact="1" operation="add"/>
 						</do_if>
 						<do_if value="(not $DUDVT.$DUVassalGarrisonSectorCount?) or (not ($DUDVT.$DUVassalGarrisonSectorCount ge 1))">

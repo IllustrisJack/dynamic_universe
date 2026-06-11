@@ -6876,7 +6876,7 @@
 						<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
 						<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
 								$col=1, $colSpan=12,
-								$text=table[$text='Kill All Expedition Ships (debug)', $color=$DUMVT.$TextRed, $halign='center'],
+								$text=table[$text='Kill Vassal-Spawned Ships (expeditions + aid)', $color=$DUMVT.$TextRed, $halign='center'],
 								$highlightColor=$DUMVT.$ButtonHighlight,
 								$onClick=ExecuteOption_VassalDebugKillExpeditions,
 								$onRightClick=ExecuteOption_VassalDebugKillExpeditions,
