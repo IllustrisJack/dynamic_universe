@@ -3511,17 +3511,13 @@
 								<do_if value="$DUDVT.$DUVassalTable.{$LocV}.$Happiness lt 40">
 									<set_value name="$LocTribTarget" exact="2.0"/>
 								</do_if>
-								<!-- War-pressure adjustment: each ongoing claimspace war beyond the first adds +1 to target (capped at 12%). -->
-								<set_value name="$LocSuzWars" exact="0"/>
-								<get_factions_by_tag tag="tag.claimspace" result="$LocTribClaim"/>
-								<do_for_each name="$LocTribOther" in="$LocTribClaim">
-									<do_if value="($LocTribOther != $LocSuz) and ($LocTribOther != $LocV) and ($LocTribOther != faction.player) and (not $DUDVT.$DUDynamicWarPermaExcludedFactions.indexof.{$LocTribOther}) and ($LocSuz.relationto.{$LocTribOther} le -0.1)">
-										<set_value name="$LocSuzWars" exact="1" operation="add"/>
-									</do_if>
-								</do_for_each>
-								<remove_value name="$LocTribClaim"/>
-								<remove_value name="$LocTribOther"/>
-								<set_value name="$LocTribTarget" exact="[$LocSuzWars - 1, 0].max" operation="add"/>
+								<!-- War-pressure pumping removed: in the old virt-balance
+								     model it filled a war-chest pool; with virt-balance gone,
+								     raising tribute does nothing for the suzerain but
+								     accelerate the vassal's rebellion via the continuous
+								     drain + tribute_resentment event. Self-sabotage. Target
+								     is now purely happiness-shaped (squeeze happy vassals,
+								     ease unhappy ones). Defensive clamp kept. -->
 								<set_value name="$LocTribTarget" exact="[[$LocTribTarget, 1.0].max, 12.0].min"/>
 								<set_value name="$LocDynTrib" exact="$DUDVT.$DUVassalTable.{$LocV}.$TributePct"/>
 								<set_value name="$LocOldTrib" exact="$LocDynTrib"/>
@@ -3534,12 +3530,11 @@
 								<set_value name="$DUDVT.$DUVassalTable.{$LocV}.$TributePct" exact="$LocDynTrib"/>
 								<set_value name="$DUDVT.$DUVassalTable.{$LocV}.$LastTributeReview" exact="player.age"/>
 								<do_if value="$DUDVT.$DUVassalDetailedDebug and ($LocOldTrib != $LocDynTrib)">
-									<debug_text text="'MOD: DAVassal -- tribute review %s -> %s: %s%% -> %s%% (target %s%%, suz wars %s, happiness %s)'.[$LocSuz, $LocV, $LocOldTrib, $LocDynTrib, $LocTribTarget, $LocSuzWars, ($DUDVT.$DUVassalTable.{$LocV}.$Happiness)i]" context="false" filter="scripts"/>
+									<debug_text text="'MOD: DAVassal -- tribute review %s -> %s: %s%% -> %s%% (target %s%%, happiness %s)'.[$LocSuz, $LocV, $LocOldTrib, $LocDynTrib, $LocTribTarget, ($DUDVT.$DUVassalTable.{$LocV}.$Happiness)i]" context="false" filter="scripts"/>
 								</do_if>
 								<remove_value name="$LocOldTrib"/>
 								<remove_value name="$LocTribTarget"/>
 								<remove_value name="$LocDynTrib"/>
-								<remove_value name="$LocSuzWars"/>
 							</do_if>
 							<set_value name="$LocTributePct" exact="$DUDVT.$DUVassalTable.{$LocV}.$TributePct"/>
 							<!-- Tribute drain — gentle continuous cost.
