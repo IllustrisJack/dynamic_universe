@@ -6876,6 +6876,14 @@
 						<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
 						<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
 								$col=1, $colSpan=12,
+								$text=table[$text='Kill All Expedition Ships (debug)', $color=$DUMVT.$TextRed, $halign='center'],
+								$highlightColor=$DUMVT.$ButtonHighlight,
+								$onClick=ExecuteOption_VassalDebugKillExpeditions,
+								$onRightClick=ExecuteOption_VassalDebugKillExpeditions,
+							]"/>
+						<signal_cue_instantly cue="md.Simple_Menu_API.Add_Row"/>
+						<signal_cue_instantly cue="md.Simple_Menu_API.Make_Button" param="table[
+								$col=1, $colSpan=12,
 								$text=table[$text={33232474,2784}, $color=$DUMVT.$TextRed, $halign='center'],
 								$highlightColor=$DUMVT.$ButtonHighlight,
 								$onClick=ExecuteOption_VassalDebugForceFirstRebel,
@@ -7640,6 +7648,13 @@
 					<conditions><event_cue_signalled/></conditions>
 					<actions>
 						<set_value name="$DUDVT.$DUFactionTreasury" exact="table[]"/>
+						<signal_cue_instantly cue="md.Simple_Menu_API.Refresh_Menu"/>
+					</actions>
+				</cue>
+				<cue name="ExecuteOption_VassalDebugKillExpeditions" instantiate="true">
+					<conditions><event_cue_signalled/></conditions>
+					<actions>
+						<signal_cue_instantly cue="md.DynamicUniverse.EventVassalDebugKillExpeditions"/>
 						<signal_cue_instantly cue="md.Simple_Menu_API.Refresh_Menu"/>
 					</actions>
 				</cue>

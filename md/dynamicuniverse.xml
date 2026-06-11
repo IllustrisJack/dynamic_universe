@@ -5446,6 +5446,39 @@
 						<remove_value name="$LocGarrLabel"/>
 					</actions>
 				</cue>
+				<cue name="EventVassalDebugKillExpeditions" instantiate="true">
+					<conditions>
+						<event_cue_signalled/>
+					</conditions>
+					<actions>
+						<!-- Emergency wipe: iterate every vassal's $Expeditions list,
+						     destroy every still-alive ship, clear the list. Used to
+						     clean up a runaway spawn (e.g. debug "Run All Ticks" before
+						     the cooldown was in place left hundreds of ships orphaned
+						     and tanked frame rate). -->
+						<set_value name="$LocKilled" exact="0"/>
+						<do_for_each name="$LocKEV" in="$DUDVT.$DUVassalTable.keys.list">
+							<do_if value="$DUDVT.$DUVassalTable.{$LocKEV}.$Expeditions? and ($DUDVT.$DUVassalTable.{$LocKEV}.$Expeditions.count gt 0)">
+								<do_for_each name="$LocKEVE" in="$DUDVT.$DUVassalTable.{$LocKEV}.$Expeditions">
+									<do_for_each name="$LocKEVS" in="$LocKEVE.{1}">
+										<do_if value="@$LocKEVS and $LocKEVS.exists">
+											<destroy_object object="$LocKEVS" explosion="false"/>
+											<set_value name="$LocKilled" exact="1" operation="add"/>
+										</do_if>
+									</do_for_each>
+								</do_for_each>
+								<set_value name="$DUDVT.$DUVassalTable.{$LocKEV}.$Expeditions" exact="[]"/>
+								<set_value name="$DUDVT.$DUVassalTable.{$LocKEV}.$LastExpeditionAt" exact="0s"/>
+							</do_if>
+						</do_for_each>
+						<remove_value name="$LocKEV"/>
+						<remove_value name="$LocKEVE"/>
+						<remove_value name="$LocKEVS"/>
+						<show_notification priority="2" text="'Debug: destroyed %s expedition ship(s) across all vassals.'.[$LocKilled]"/>
+						<debug_text text="'MOD: DAVassal -- Debug kill expeditions: %s ships destroyed.'.[$LocKilled]" context="true" filter="general"/>
+						<remove_value name="$LocKilled"/>
+					</actions>
+				</cue>
 				<cue name="Action_ProposeVassalage" instantiate="true" namespace="this">
 					<conditions>
 						<event_diplomacy_action_operation_started/>
