@@ -7,14 +7,14 @@
   package). First run does a first-publish; pass -Update for subsequent
   releases.
 
-  Note: the mod's `id` in content.xml is `dynamic_universe`. The mod
-  folder on disk under <X4>/extensions is currently named `deadair_scripts`
-  (legacy from upstream). X4 loads via content.xml id, so it works either
-  way, but for consistency you may want to rename / re-symlink the
-  extension folder to `dynamic_universe` before first publish.
+  Important: the mod's content.xml id is "dynamic_universe" but the
+  source folder on disk is "deadair_scripts" (legacy). The script
+  always passes -foldername dynamic_universe so subscribers' Workshop
+  install lands in extensions/dynamic_universe/. Skipping that flag
+  silently flips the subscriber-side folder name.
 
-  Make sure the deployed copy is current before running; this script
-  publishes from the deployed path, not the workspace repo.
+  WorkshopTool defaults to an interactive y/n prompt. -batchmode is
+  passed below so the script can run unattended.
 
 .PARAMETER Update
   Update an existing Workshop item instead of first-publish.
@@ -36,7 +36,7 @@
 
 .EXAMPLE
   # Tagged release update
-  .\scripts\publish.ps1 -Update -ChangeNote "v1.0.1: rename + diff-engine validator + docs cleanup"
+  .\scripts\publish.ps1 -Update -ChangeNote "v1.0.1: rename + validator + docs cleanup"
 #>
 param(
     [switch]$Update,
@@ -45,15 +45,12 @@ param(
     [string]$WorkshopTool
 )
 
-$ErrorActionPreference = "Continue"  # WorkshopTool writes harmless banners to stderr on every run; Stop would treat them as fatal
+$ErrorActionPreference = "Continue"
 
 # Source folder on disk (legacy from the DeadAir Scripts upstream).
 $ModName = "deadair_scripts"
 
-# Folder name shipped to Workshop subscribers. Matches content.xml id so
-# subscribers' extensions/ tree is clean and matches the mod's published name.
-# WorkshopTool's -foldername switch overrides destination folder at upload
-# time without renaming our local copy.
+# Folder name shipped to Workshop subscribers. Matches content.xml id.
 $PublishedFolderName = "dynamic_universe"
 
 function Get-SteamLibraries {
@@ -63,7 +60,7 @@ function Get-SteamLibraries {
         if ($reg) { $roots += $reg }
     } catch {}
     $roots += @(
-        "$env:ProgramFiles(x86)\Steam",
+        "${env:ProgramFiles(x86)}\Steam",
         "$env:ProgramFiles\Steam"
     )
     $libs = @()
@@ -100,7 +97,7 @@ if (-not $WorkshopTool) {
     $WorkshopTool = Find-WorkshopTool
 }
 if (-not $WorkshopTool -or -not (Test-Path $WorkshopTool)) {
-    Write-Error "WorkshopTool.exe not found. Install Egosoft's free 'X Tools' from Steam Library, then re-run or pass -WorkshopTool '<path>'."
+    Write-Error "WorkshopTool.exe not found. Install 'X Tools' from Steam, or pass -WorkshopTool."
     exit 1
 }
 
@@ -108,13 +105,13 @@ if (-not $ModPath) {
     $ModPath = Find-X4Extension -Name $ModName
 }
 if (-not $ModPath -or -not (Test-Path $ModPath)) {
-    Write-Error "Mod path not found. Deploy/symlink the mod to <SteamLibrary>\steamapps\common\X4 Foundations\extensions\$ModName first, or pass -ModPath '<path>'."
+    Write-Error "Mod path not found. Deploy to extensions\$ModName or pass -ModPath."
     exit 1
 }
 
 $contentXml = Join-Path $ModPath "content.xml"
 if (-not (Test-Path $contentXml)) {
-    Write-Error "content.xml missing at $contentXml — not a valid X4 mod folder."
+    Write-Error "content.xml missing at $contentXml."
     exit 1
 }
 
@@ -124,24 +121,25 @@ foreach ($ext in @("preview.png", "preview.jpg")) {
     if (Test-Path $candidate) { $previewPath = $candidate; break }
 }
 if (-not $Update -and -not $previewPath) {
-    Write-Error "preview.png/jpg missing in $ModPath. Required for first publish. Drop a 640x360+ JPG/PNG into the mod folder."
+    Write-Error "preview.png/jpg missing in $ModPath. Required for first publish."
     exit 1
 }
 
 if ($Update -and -not $ChangeNote) {
-    Write-Error "-Update requires -ChangeNote ""...""."
+    Write-Error "-Update requires -ChangeNote."
     exit 1
 }
 
-Write-Host "WorkshopTool: $WorkshopTool" -ForegroundColor DarkGray
-Write-Host "Mod path:     $ModPath" -ForegroundColor DarkGray
+Write-Host "WorkshopTool: $WorkshopTool"
+Write-Host "Mod path:     $ModPath"
+Write-Host "Foldername:   $PublishedFolderName"
 
 if ($Update) {
     Write-Host "Updating Workshop item..." -ForegroundColor Cyan
-    & $WorkshopTool update -path $ModPath -foldername $PublishedFolderName -buildcat -changenote $ChangeNote
+    & $WorkshopTool update -path $ModPath -foldername $PublishedFolderName -buildcat -batchmode -changenote $ChangeNote
 } else {
     Write-Host "First-publishing Workshop item..." -ForegroundColor Cyan
-    & $WorkshopTool publishx4 -path $ModPath -foldername $PublishedFolderName -preview $previewPath -buildcat
+    & $WorkshopTool publishx4 -path $ModPath -foldername $PublishedFolderName -preview $previewPath -buildcat -batchmode
 }
 
 if ($LASTEXITCODE -ne 0) {
@@ -149,4 +147,4 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-Write-Host "Done. If this was a first publish, open the new Workshop item in your browser and set visibility to Public." -ForegroundColor Green
+Write-Host "Done." -ForegroundColor Green
