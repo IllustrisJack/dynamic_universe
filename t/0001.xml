@@ -877,15 +877,15 @@
 		<t id="2895">%s dispatched a %s-ship embassy defense fleet to %s.</t>
 		<t id="2797">Different race — friction</t>
 		<t id="2798">Auto-adjust Tribute</t>
-		<t id="2799">AI suzerain reviews tribute every ~20 min per vassal and makes ±1% policy moves. Base target 8/5/2% by happiness band; each extra ongoing war adds +1% (war chest squeeze). Higher tribute drains happiness faster, forcing the suzerain to gift more from its virt-treasury — aggressive empires pay to hold themselves together. Off = manual slider only.</t>
+		<t id="2799">AI suzerain reviews tribute every ~20 min per vassal and makes ±1% policy moves. Target 8/5/2% by happiness band — squeezes content vassals, eases pressure on unhappy ones. Off = manual slider only.</t>
 		<t id="2800">AI Auto-Gifts</t>
-		<t id="2801">AI suzerains spend virtual treasury to buffer unhappy vassals (+5 happiness when below 40, costs vassal worth / 2000 in virt-Cr). A broke suzerain cannot prevent rebellion forever.</t>
+		<t id="2801">AI suzerains buffer unhappy vassals (+5 happiness when below 40). Costs vassal_worth / 2000, gated at 1% of suzerain's own Worth per fire. A weakened suzerain can't afford to keep buying off rebellion.</t>
 		<t id="2802">Cultural Mismatch Penalty</t>
 		<t id="2803">Happiness drain per tick when vassal and suzerain don't share primary race (Terran-on-Argon etc). 0 disables.</t>
 		<t id="2804">Master switch for vassal system. Off = no new vassalages form, existing ones keep running.</t>
 		<t id="2805">Default tribute % applied to new vassalages. Existing vassals keep their current rate.</t>
 		<t id="2806">Probability roll (0-100) per faction-conquest event to vassalize the conquered instead of destroying.</t>
-		<t id="2807">When on, suzerain virtual treasury feeds the God expansion rate — wealthy suzerains build faster.</t>
+		<t id="2807">Reserved.</t>
 		<t id="2808">Minutes a faction stays on the rebellion cooldown list (cannot be re-vassalized) after breaking free.</t>
 		<t id="2809">Suzerain dispatches garrison fleets from its shipyard to patrol vassal sectors.</t>
 		<t id="2810">Number of vassal sectors that receive their own garrison fleet (HQ sector first).</t>
