@@ -311,21 +311,10 @@
 								$onOpen  = Menu_Fill_Statistics,
 								$private = 1,
 							]"/>
-						<!-- DA Jobs Menus -->
-						<signal_cue_instantly cue="md.Simple_Menu_API.Register_Options_Menu" param="table[
-								$id      = 'menu_jobs_quotas',
-								$columns = 8, 
-								$title   = {33232474,245},
-								$onOpen  = Menu_Jobs_Quotas,
-								$private = 1,
-							]"/>
-						<signal_cue_instantly cue="md.Simple_Menu_API.Register_Options_Menu" param="table[
-								$id      = 'menu_jobs_togglespawned',
-								$columns = 8, 
-								$title   = {33232474,261},
-								$onOpen  = Menu_Jobs_ToggleSpawned,
-								$private = 1,
-							]"/>
+						<!-- DA Jobs Menus removed: the Jobs submodule is not ported
+						     into this fork, so Menu_Jobs_Quotas and Menu_Jobs_ToggleSpawned
+						     cues do not exist. Both Register_Options_Menu calls were
+						     throwing "Property lookup failed" at t=0.73 on save load. -->
 						<!-- DA God Menus -->
 						<signal_cue_instantly cue="md.Simple_Menu_API.Register_Options_Menu" param="table[
 								$id      = 'menu_god_quotas',
