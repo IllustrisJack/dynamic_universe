@@ -4985,7 +4985,7 @@
 							<set_value name="$LocFighterMacro" exact="macro.ship_arg_s_heavyfighter_01_a_macro"/>
 						</do_else>
 						<!-- Spawn the fleet leader first (destroyer if available, else first corvette). All other ships
-						     get the leader as commander with assignment.escort and follow it on Patrol. -->
+						     get the leader as commander with assignment.subordinate and follow it on Patrol. -->
 						<set_value name="$LocFleetLeader" exact="null"/>
 						<do_if value="$LocDestroyerMacro != null">
 							<create_ship name="$LocGarrShip" macro="$LocDestroyerMacro" sector="$LocOriginSector">
@@ -5021,7 +5021,7 @@
 								<do_if value="$LocGarrShip">
 									<set_object_name object="$LocGarrShip" name="'%s Frigate %s'.[$LocGarrPrefix, $LocGarrIdx]"/>
 									<do_if value="$LocFleetLeader != null">
-										<set_object_commander object="$LocGarrShip" commander="$LocFleetLeader" assignment="assignment.escort"/>
+										<set_object_commander object="$LocGarrShip" commander="$LocFleetLeader" assignment="assignment.subordinate"/>
 										<create_order id="'Escort'" object="$LocGarrShip" default="true">
 											<param name="target" value="$LocFleetLeader"/>
 										</create_order>
@@ -5051,7 +5051,7 @@
 								<do_if value="$LocGarrShip">
 									<set_object_name object="$LocGarrShip" name="'%s Fighter %s'.[$LocGarrPrefix, $LocGarrIdx]"/>
 									<do_if value="$LocFleetLeader != null">
-										<set_object_commander object="$LocGarrShip" commander="$LocFleetLeader" assignment="assignment.escort"/>
+										<set_object_commander object="$LocGarrShip" commander="$LocFleetLeader" assignment="assignment.subordinate"/>
 										<create_order id="'Escort'" object="$LocGarrShip" default="true">
 											<param name="target" value="$LocFleetLeader"/>
 										</create_order>
